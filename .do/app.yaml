@@ -1,0 +1,8 @@
+name: unus
+services:
+- dockerfile_path: Dockerfile
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: Junebugg1214/Unus1
+  name: unus-web
