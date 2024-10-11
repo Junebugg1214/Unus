@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <style>
+    .logo-circle { fill: #003366; stroke: #000; stroke-width: 5; }
+    .u-letter { fill: none; stroke: #fff; stroke-width: 12; stroke-linecap: round; }
+    .connection { stroke: #fff; stroke-width: 5; stroke-linecap: round; }
+    .connection-dot { fill: #fff; }
+    .logo-text { fill: #fff; font-size: 24px; font-family: Arial, sans-serif; font-weight: bold; }
+  </style>
+  
+  <circle class="logo-circle" cx="100" cy="100" r="95" />
+  
+  <path class="u-letter" d="M60 50Q60 140 100 140Q140 140 140 50" />
+  
+  <g class="connection">
+    <line x1="100" y1="150" x2="100" y2="180" />
+    <circle class="connection-dot" cx="100" cy="190" r="8" />
+  </g>
+  
+  <text class="logo-text" x="100" y="190" text-anchor="middle">UNUS</text>
+</svg>

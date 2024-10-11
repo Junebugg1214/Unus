@@ -1,0 +1,44 @@
+name: unus
+env: flex
+
+runtime: custom
+
+# Specifying the service details
+services:
+  unus-web:
+    dockerfile_path: Dockerfile
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: Junebugg1214/Unus1
+    manual_scaling:
+      instances: 1
+
+# Define environment variables (Add as many as needed)
+env_variables:
+  FLASK_ENV: "production"
+  DATABASE_URI: "postgresql://junebugg:Madou6282*@localhost:5432/unus_db"
+  SECRET_KEY: "your-secret-key"
+
+# Health check configuration (optional, for containerized environments)
+health_check:
+  enable_health_check: True
+  check_interval_sec: 30
+  timeout_sec: 4
+  unhealthy_threshold: 2
+  healthy_threshold: 2
+
+# Network settings (optional)
+network:
+  forwarded_ports:
+    - 8080
+
+resources:
+  cpu: 1
+  memory_gb: 0.5
+  disk_size_gb: 10
+
+automatic_scaling:
+  target_cpu_utilization: 0.65
+  min_instances: 1
+  max_instances: 5

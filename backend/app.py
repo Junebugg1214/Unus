@@ -1,34 +1,40 @@
-import os
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from flask_login import LoginManager, login_required, login_user, logout_user, current_user
+from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity
+from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from celery import Celery
+from celery import Celery, uuid
 from dotenv import load_dotenv
 import git
 import shutil
 import subprocess
 import docker
+import os
 import re
+import logging
 from models import db, User
 from config import Config
 from utils import allowed_file, save_uploaded_file, install_requirements
 from error_handlers import register_error_handlers
-from middleware import token_required
+from flask_talisman import Talisman
+from config import config
 
 # Load environment variables
 load_dotenv()
 
 # Initialize Flask app
-app = Flask(__name__, static_folder='../frontend/build', static_url_path='/')
-app.config.from_object(Config)
+app = Flask(__name__)
+app.config.from_object(config['development'])  # or use 'production' as needed
+
 
 # Initialize extensions
+jwt = JWTManager(app)
+csrf = CSRFProtect(app)
 db.init_app(app)
 migrate = Migrate(app, db)
-login_manager = LoginManager(app)
+talisman = Talisman(app)
 
 # Initialize Celery
 celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
@@ -37,126 +43,110 @@ celery.conf.update(app.config)
 # Register error handlers
 register_error_handlers(app)
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-@celery.task
-def run_inference(repo_path, input_data):
+# Security configuration with Talisman
+csp = {
+    'default-src': ["'self'"],
+    'img-src': ["'self'", 'data:'],
+    'script-src': ["'self'", "'unsafe-inline'"],
+    'style-src': ["'self'", "'unsafe-inline'"]
+}
+talisman = Talisman(app, content_security_policy=csp)
+
+@celery.task(bind=True)
+def run_inference(self, repo_path, input_data):
     try:
+        # Input validation
+        if not os.path.exists(repo_path):
+            raise ValueError(f"Repository path does not exist: {repo_path}")
+
+        if not isinstance(input_data, str):
+            raise ValueError("Input data must be a string.")
+
+        # Run Docker container
         client = docker.from_env()
         container = client.containers.run(
             'python:3.9',
             command=f'python /app/main.py --input "{input_data}"',
             volumes={repo_path: {'bind': '/app', 'mode': 'ro'}},
-            detach=True
+            detach=True,
+            remove=True  # Automatically remove container after stopping
         )
+        
+        # Wait for the container to finish execution
         result = container.wait()
+        if result['StatusCode'] != 0:
+            raise RuntimeError(f"Inference script failed with status code {result['StatusCode']}.")
+
+        # Get container logs
         output = container.logs().decode('utf-8')
-        container.remove()
+
+        # Log and return result
+        logger.info(f"Inference completed successfully: {output.strip()}")
         return {'status': 'completed', 'result': output.strip()}
+
+    except docker.errors.ContainerError as e:
+        self.update_state(state='FAILURE', meta={'exc': str(e)})
+        logger.error(f"Container error during inference: {str(e)}")
+        raise e
+    except docker.errors.DockerException as e:
+        self.update_state(state='FAILURE', meta={'exc': str(e)})
+        logger.error(f"Docker error: {str(e)}")
+        raise e
     except Exception as e:
-        return {'status': 'error', 'result': str(e)}
-
-@app.route('/')
-def serve():
-    return send_from_directory(app.static_folder, 'index.html')
-
-@app.route('/api/register', methods=['POST'])
-def register():
-    data = request.json
-    username = data.get('username')
-    email = data.get('email')
-    password = data.get('password')
-
-    if not username or len(username) < 3 or len(username) > 25:
-        return jsonify({'error': 'Invalid username'}), 400
-
-    if not email or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-        return jsonify({'error': 'Invalid email'}), 400
-
-    if not password or len(password) < 8:
-        return jsonify({'error': 'Invalid password'}), 400
-
-    if User.query.filter_by(username=username).first():
-        return jsonify({'error': 'Username already exists'}), 400
-
-    if User.query.filter_by(email=email).first():
-        return jsonify({'error': 'Email already exists'}), 400
-
-    new_user = User(username=username, email=email)
-    new_user.set_password(password)
-    db.session.add(new_user)
-    db.session.commit()
-
-    return jsonify({'message': 'User registered successfully'}), 201
+        self.update_state(state='FAILURE', meta={'exc': str(e)})
+        logger.error(f"Unexpected error during inference: {str(e)}")
+        raise e
 
 @app.route('/api/login', methods=['POST'])
 def login():
-    data = request.json
-    user = User.query.filter_by(username=data['username']).first()
-    if user and user.check_password(data['password']):
-        login_user(user)
-        return jsonify({'message': 'Logged in successfully'}), 200
-    return jsonify({'error': 'Invalid username or password'}), 401
+    username = request.json.get('username', None)
+    password = request.json.get('password', None)
+    
+    user = User.query.filter_by(username=username).first()
+    if user and user.check_password(password):
+        access_token = create_access_token(identity=user.id)
+        refresh_token = create_refresh_token(identity=user.id)
+        return jsonify(access_token=access_token, refresh_token=refresh_token), 200
+    
+    return jsonify({"msg": "Bad username or password"}), 401
+
+@app.route('/api/protected', methods=['GET'])
+@jwt_required()
+def protected():
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+    return jsonify(logged_in_as=user.to_dict()), 200
+
+@app.route('/api/refresh', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh():
+    current_user = get_jwt_identity()
+    new_access_token = create_access_token(identity=current_user)
+    return jsonify(access_token=new_access_token), 200
 
 @app.route('/api/logout', methods=['POST'])
-@login_required
+@jwt_required()
 def logout():
-    logout_user()
-    return jsonify({'message': 'Logged out successfully'}), 200
-
-@app.route('/api/clone', methods=['POST'])
-@login_required
-def clone_repository():
-    data = request.json
-    repo_url = data.get('repo_url')
-    repo_name = repo_url.split('/')[-1].replace('.git', '')
-    repo_path = os.path.join(app.config['AGENT_FOLDER'], repo_name)
-
-    try:
-        git.Repo.clone_from(repo_url, repo_path)
-        install_requirements(repo_path)
-        
-        # Update user's repos
-        current_user.repos = current_user.repos + [{'name': repo_name, 'path': repo_path}]
-        db.session.commit()
-        
-        return jsonify({'message': f'Repository {repo_name} cloned successfully'}), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 400
-
-@app.route('/api/repos', methods=['GET'])
-@login_required
-def get_repos():
-    return jsonify({'repos': [repo['name'] for repo in current_user.repos]}), 200
-
-@app.route('/api/delete_repo', methods=['POST'])
-@login_required
-def delete_repo():
-    data = request.json
-    repo_name = data.get('repo_name')
-    repo_path = next((repo['path'] for repo in current_user.repos if repo['name'] == repo_name), None)
-
-    if not repo_path:
-        return jsonify({'error': 'Repository not found'}), 404
-
-    try:
-        shutil.rmtree(repo_path)
-        current_user.repos = [repo for repo in current_user.repos if repo['name'] != repo_name]
-        db.session.commit()
-        return jsonify({'message': f'Repository {repo_name} deleted successfully'}), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 400
+    # In a real application, you might want to blacklist the token here
+    return jsonify({"msg": "Successfully logged out"}), 200
 
 @app.route('/api/run_inference', methods=['POST'])
-@login_required
+@jwt_required()
+@csrf.exempt
 def run_inference_api():
     repo_name = request.form.get('repo_name')
     input_text = request.form.get('input_text')
     input_file = request.files.get('input_file')
 
-    repo_path = next((repo['path'] for repo in current_user.repos if repo['name'] == repo_name), None)
+    if not repo_name:
+        return jsonify({'error': 'Repository name is required'}), 400
+
+    user = User.query.filter_by(username=get_jwt_identity()).first()
+    repo_path = next((repo['path'] for repo in user.repos if repo['name'] == repo_name), None)
     if not repo_path:
         return jsonify({'error': 'Repository not found'}), 404
 
@@ -165,28 +155,68 @@ def run_inference_api():
         if not file_path:
             return jsonify({'error': 'Invalid file'}), 400
         input_data = file_path
-    else:
+    elif input_text:
         input_data = input_text
-
-    task = run_inference.delay(repo_path, input_data)
-    result = task.get(timeout=60)  # Wait for the task to complete
-
-    if result['status'] == 'completed':
-        return jsonify({'result': result['result']}), 200
     else:
-        return jsonify({'error': result['result']}), 400
+        return jsonify({'error': 'Input text or input file is required'}), 400
 
-@app.route('/api/change_password', methods=['POST'])
-@login_required
-def change_password():
+    try:
+        task = run_inference.apply_async(args=[repo_path, input_data], task_id=uuid())
+        return jsonify({'task_id': task.id}), 202
+    except Exception as e:
+        logger.error(f"Failed to start inference: {str(e)}")
+        return jsonify({'error': 'Failed to start inference'}), 500
+
+@app.route('/api/task_status/<task_id>', methods=['GET'])
+@jwt_required()
+def get_task_status(task_id):
+    task = run_inference.AsyncResult(task_id)
+    if task.state == 'PENDING':
+        response = {'state': task.state, 'status': 'Pending...'}
+    elif task.state == 'STARTED':
+        response = {'state': task.state, 'status': 'Inference in progress...'}
+    elif task.state == 'SUCCESS':
+        response = {'state': task.state, 'result': task.result.get('result', '')}
+    elif task.state == 'FAILURE':
+        response = {'state': task.state, 'error': str(task.info)}
+    else:
+        response = {'state': task.state, 'status': 'Unknown status'}
+    return jsonify(response)
+
+@app.route('/api/clone', methods=['POST'])
+@jwt_required()
+def clone_repository():
     data = request.json
-    new_password = data.get('password')
-    if not new_password or len(new_password) < 8:
-        return jsonify({'error': 'Invalid password'}), 400
-    
-    current_user.set_password(new_password)
-    db.session.commit()
-    return jsonify({'message': 'Password changed successfully'}), 200
+    repo_url = data.get('repo_url')
+
+    if not repo_url or not re.match(r'^https:\/\/github\.com\/[\w\-]+\/[\w\-]+(\.git)?$', repo_url):
+        return jsonify({'error': 'Invalid GitHub repository URL'}), 400
+
+    repo_name = repo_url.split('/')[-1].replace('.git', '')
+    repo_path = os.path.join(app.config['AGENT_FOLDER'], repo_name)
+
+    user = User.query.filter_by(username=get_jwt_identity()).first()
+    if any(repo['name'] == repo_name for repo in user.repos):
+        return jsonify({'error': f'Repository {repo_name} has already been cloned'}), 400
+
+    try:
+        git.Repo.clone_from(repo_url, repo_path)
+        
+        requirements_file = os.path.join(repo_path, 'requirements.txt')
+        if os.path.exists(requirements_file):
+            install_requirements(repo_path)
+
+        user.repos = user.repos + [{'name': repo_name, 'path': repo_path}]
+        db.session.commit()
+
+        return jsonify({'message': f'Repository {repo_name} cloned successfully'}), 200
+
+    except git.exc.GitCommandError as git_error:
+        logger.error(f"Failed to clone repository: {str(git_error)}")
+        return jsonify({'error': f'Failed to clone repository: {str(git_error)}'}), 400
+    except Exception as e:
+        logger.error(f"Unexpected error during repository cloning: {str(e)}")
+        return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    app.run(host='0.0.0.0', port=5000, debug=False, ssl_context=('cert.pem', 'key.pem'))
