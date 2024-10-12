@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardHeader, CardContent } from './ui/card';
 import Button from './ui/button';
 import Input from './ui/input';
+import { cn, formatDate, truncate } from '../lib/utils';
 import { validateRepoUrl } from '../utils/validation';
 
 const HomePage = ({ user, onCloneRepo }) => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-
+import { Textarea } from './ui/textarea'
 const Textarea = React.forwardRef(({ className, ...props }, ref) => (
   <textarea
     className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${className}`}

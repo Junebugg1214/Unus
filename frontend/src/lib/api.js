@@ -2,7 +2,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -23,7 +23,7 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response && error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
         const refreshToken = Cookies.get('refreshToken');
@@ -40,6 +40,19 @@ api.interceptors.response.use(
         return Promise.reject(refreshError);
       }
     }
+
+    // General error handling
+    if (!error.response) {
+      console.error('Network error:', error);
+      // You could dispatch an action here to show a network error message
+    } else if (error.response.status >= 500) {
+      console.error('Server error:', error.response);
+      // You could dispatch an action here to show a server error message
+    } else {
+      console.error('Request error:', error.response);
+      // You could dispatch an action here to show a general error message
+    }
+
     return Promise.reject(error);
   }
 );

@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Card, CardHeader, CardContent, CardFooter } from '../components/ui/card';
-import { Alert, AlertDescription } from '../components/ui/alert';
-import { Label } from '../components/ui/label';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Card, CardHeader, CardContent, CardFooter } from './ui/card';
+import { Alert, AlertDescription } from './ui/alert';
+import { Label } from './ui/label';
+import { cn, formatDate, truncate } from '../lib/utils';
+import { validatePassword, validateConfirmPassword } from '../utils/validation';
+import api from '../lib/api';
 
 const AccountSettings = ({ user, onUpdatePassword }) => {
   const [formData, setFormData] = useState({

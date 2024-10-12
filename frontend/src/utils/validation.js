@@ -53,6 +53,12 @@ export const validateUsername = (username) => {
     }
     return '';
   };
+  export const validateInferenceText = (text) => {
+    if (!text.trim()) {
+      return "Inference text cannot be empty";
+    }
+    return "";
+  };
   
   /**
    * Validates a form based on the provided validation rules

@@ -3,7 +3,8 @@ import { Card, CardHeader, CardContent, CardFooter } from './ui/card';
 import Button from './ui/button';
 import Input from './ui/input';
 import Textarea from './ui/textarea';
-import { validateInferenceText } from '../utils/validation';
+import { cn, formatDate, truncate } from '../lib/utils';
+import { validateRepoUrl, validateInferenceText } from '../utils/validation';
 import api from '../lib/api';
 
 const InferencePage = ({ repos, showAlert }) => {
