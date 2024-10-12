@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Card, CardHeader, CardContent } from '../ui/card';
-import Button from '../ui/button';
-import Input from '../ui/input';
-import { validateRepoUrl } from '../../utils/validation';
+import { Card, CardHeader, CardContent } from './ui/card';
+import Button from './ui/button';
+import Input from './ui/input';
+import { validateRepoUrl } from '../utils/validation';
 
 const HomePage = ({ user, onCloneRepo }) => {
   const [githubUrl, setGithubUrl] = useState('');

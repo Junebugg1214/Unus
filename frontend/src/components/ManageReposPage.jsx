@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, CardHeader, CardContent } from '../ui/card';
-import Button from '../ui/button';
+import { Card, CardHeader, CardContent } from './ui/card';
+import Button from './ui/button';
 
 const ManageReposPage = ({ repos, onDeleteRepo }) => {
   return (
