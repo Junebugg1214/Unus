@@ -75,3 +75,4 @@ dist/
 # Temporary folders
 tmp/
 temp/
+venv/

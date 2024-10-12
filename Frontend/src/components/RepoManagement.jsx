@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Alert, AlertDescription } from '../components/ui/alert';
 import { Trash2 } from 'lucide-react';
 import { validateRepoUrl } from '../utils/validation';
 import api from '../services/api';
