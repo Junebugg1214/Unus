@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardContent, CardFooter } from './ui/card';
-import Button from './ui/button';
-import Input from './ui/input';
-import Textarea from './ui/textarea';
-import { cn, formatDate, truncate } from '../lib/utils';
-import { validateRepoUrl, validateInferenceText } from '../utils/validation';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Textarea } from './ui/textarea';
+import { validateInferenceText } from '../utils/validation';
 import api from '../lib/api';
 
 const InferencePage = ({ repos, showAlert }) => {

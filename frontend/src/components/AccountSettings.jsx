@@ -5,9 +5,6 @@ import { Input } from './ui/input';
 import { Card, CardHeader, CardContent, CardFooter } from './ui/card';
 import { Alert, AlertDescription } from './ui/alert';
 import { Label } from './ui/label';
-import { cn, formatDate, truncate } from '../lib/utils';
-import { validatePassword, validateConfirmPassword } from '../utils/validation';
-import api from '../lib/api';
 
 const AccountSettings = ({ user, onUpdatePassword }) => {
   const [formData, setFormData] = useState({
