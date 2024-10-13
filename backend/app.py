@@ -53,10 +53,10 @@ def create_app(config_name='development'):
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
 
-    return app
+    return app, csrf
 
 # Create the Flask app and Celery instance
-app = create_app(config_name='development')
+app, csrf = create_app(config_name='development')
 celery = make_celery(app)
 
 @celery.task(bind=True)
