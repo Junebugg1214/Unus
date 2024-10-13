@@ -15,46 +15,49 @@ import os
 import re
 import logging
 from models import db, User
-from config import Config
+from config import config
 from utils import allowed_file, save_uploaded_file, install_requirements
 from error_handlers import register_error_handlers
 from flask_talisman import Talisman
-from config import config
-from celery_worker import make_celery  # Import from your celery_worker.py
+from celery_worker import make_celery
 
 # Load environment variables
 load_dotenv()
 
-# Initialize Flask app
-app = Flask(__name__)
-app.config.from_object(config['development'])  # or use 'production' as needed
+# Factory function to create Flask app and initialize components
+def create_app(config_name='development'):
+    # Initialize Flask app
+    app = Flask(__name__)
+    app.config.from_object(config[config_name])
 
-# Initialize extensions
-jwt = JWTManager(app)
-csrf = CSRFProtect(app)
-db.init_app(app)
-migrate = Migrate(app, db)
-talisman = Talisman(app)
+    # Initialize extensions
+    jwt = JWTManager(app)
+    csrf = CSRFProtect(app)
+    db.init_app(app)
+    migrate = Migrate(app, db)
+    talisman = Talisman(app)
 
-# Initialize Celery using the function from celery_worker.py
+    # Register error handlers
+    register_error_handlers(app)
+
+    # Security configuration with Talisman
+    csp = {
+        'default-src': ["'self'"],
+        'img-src': ["'self'", 'data:'],
+        'script-src': ["'self'", "'unsafe-inline'"],
+        'style-src': ["'self'", "'unsafe-inline'"]
+    }
+    talisman.content_security_policy = csp
+
+    # Set up logging
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+
+    return app
+
+# Create the Flask app and Celery instance
+app = create_app(config_name='development')
 celery = make_celery(app)
-
-# Register error handlers
-register_error_handlers(app)
-
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-
-# Security configuration with Talisman
-csp = {
-    'default-src': ["'self'"],
-    'img-src': ["'self'", 'data:'],
-    'script-src': ["'self'", "'unsafe-inline'"],
-    'style-src': ["'self'", "'unsafe-inline'"]
-}
-talisman = Talisman(app, content_security_policy=csp)
 
 @celery.task(bind=True)
 def run_inference(self, repo_path, input_data):
@@ -77,8 +80,6 @@ def run_inference(self, repo_path, input_data):
         )
         # Add timeout (in seconds)
         result = container.wait(timeout=600)  # Timeout of 10 minutes, for example
-        # Wait for the container to finish execution
-        result = container.wait()
         if result['StatusCode'] != 0:
             raise RuntimeError(f"Inference script failed with status code {result['StatusCode']}.")
 
@@ -132,7 +133,6 @@ def refresh():
 @app.route('/api/logout', methods=['POST'])
 @jwt_required()
 def logout():
-    # In a real application, you might want to blacklist the token here
     return jsonify({"msg": "Successfully logged out"}), 200
 
 @app.route('/api/run_inference', methods=['POST'])
