@@ -5,7 +5,7 @@ from flask_jwt_extended import JWTManager, create_access_token, create_refresh_t
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from celery import Celery, uuid
+from celery import uuid
 from dotenv import load_dotenv
 import git
 import shutil
@@ -20,6 +20,7 @@ from utils import allowed_file, save_uploaded_file, install_requirements
 from error_handlers import register_error_handlers
 from flask_talisman import Talisman
 from config import config
+from celery_worker import make_celery  # Import from your celery_worker.py
 
 # Load environment variables
 load_dotenv()
@@ -28,7 +29,6 @@ load_dotenv()
 app = Flask(__name__)
 app.config.from_object(config['development'])  # or use 'production' as needed
 
-
 # Initialize extensions
 jwt = JWTManager(app)
 csrf = CSRFProtect(app)
@@ -36,9 +36,8 @@ db.init_app(app)
 migrate = Migrate(app, db)
 talisman = Talisman(app)
 
-# Initialize Celery
-celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
-celery.conf.update(app.config)
+# Initialize Celery using the function from celery_worker.py
+celery = make_celery(app)
 
 # Register error handlers
 register_error_handlers(app)
@@ -46,6 +45,7 @@ register_error_handlers(app)
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 # Security configuration with Talisman
 csp = {
@@ -73,9 +73,10 @@ def run_inference(self, repo_path, input_data):
             command=f'python /app/main.py --input "{input_data}"',
             volumes={repo_path: {'bind': '/app', 'mode': 'ro'}},
             detach=True,
-            remove=True  # Automatically remove container after stopping
+            remove=True
         )
-        
+        # Add timeout (in seconds)
+        result = container.wait(timeout=600)  # Timeout of 10 minutes, for example
         # Wait for the container to finish execution
         result = container.wait()
         if result['StatusCode'] != 0:
