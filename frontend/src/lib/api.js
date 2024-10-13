@@ -72,4 +72,16 @@ export const runInference = (repoName, inputText, inputFile) => {
   });
 };
 
-export default api;
+export const register = async (username, email, password) => {
+  return await api.post('/register', { username, email, password });
+};
+
+export default {
+  login,
+  logout,
+  updatePassword,
+  getClonedRepos,
+  cloneRepository,
+  runInference,
+  register,
+};

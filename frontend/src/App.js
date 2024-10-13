@@ -12,7 +12,7 @@ const AccountSettings = lazy(() => import('./components/AccountSettings'));
 const ExampleForm = lazy(() => import('./components/ExampleForm'));
 
 function App() {
-  const { user, loading, error, login, logout, updatePassword } = useAuth();
+  const { user, loading, error, login, logout, updatePassword, register } = useAuth();
 
   if (loading) {
     return <LoadingSpinner />;
@@ -26,7 +26,7 @@ function App() {
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
             <Route path="/login" element={user ? <Navigate to="/home" /> : <LoginForm onLogin={login} />} />
-            <Route path="/register" element={user ? <Navigate to="/home" /> : <RegisterForm />} />
+            <Route path="/register" element={user ? <Navigate to="/home" /> : <RegisterForm onRegister={register} />} />
             <Route path="/home" element={user ? <UnusApp user={user} /> : <Navigate to="/login" />} />
             <Route path="/account" element={user ? <AccountSettings user={user} onUpdatePassword={updatePassword} /> : <Navigate to="/login" />} />
             <Route path="/example-form" element={user ? <ExampleForm /> : <Navigate to="/login" />} />

@@ -85,6 +85,22 @@ export const useAuth = () => {
     }
   }, [showAlert]);
 
-  return { user, loading, error, login, logout, updatePassword };
-};
+  const register = useCallback(async (username, email, password) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await api.register(username, email, password);
+      showAlert('Registration successful! Please log in.');
+      return response.data;
+    } catch (err) {
+      setError('Registration failed. Please try again.');
+      showAlert('Registration failed. Please try again.');
+      console.error('Registration failed:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [showAlert]);
 
+  return { user, loading, error, login, logout, updatePassword, register };
+};
