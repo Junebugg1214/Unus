@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardHeader, CardContent, CardFooter } from '../components/ui/card';
 import { Alert, AlertDescription } from '../components/ui/alert';
-import { Link } from 'react-router-dom';
+import api from '../lib/api';
 
 const RegisterForm = ({ onRegister }) => {
   const [formData, setFormData] = useState({
@@ -27,22 +28,18 @@ const RegisterForm = ({ onRegister }) => {
       setError('Username must be between 3 and 25 characters');
       return false;
     }
-
     if (!formData.email.includes('@') || !formData.email.includes('.')) {
       setError('Please enter a valid email address');
       return false;
     }
-
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords don't match");
       return false;
     }
-
     if (formData.password.length < 8) {
       setError('Password must be at least 8 characters long');
       return false;
     }
-
     return true;
   };
 
@@ -56,11 +53,13 @@ const RegisterForm = ({ onRegister }) => {
     setIsLoading(true);
 
     try {
-      await onRegister(formData.username, formData.email, formData.password);
-      setSuccess('Registered successfully');
+      const response = await api.register(formData.username, formData.email, formData.password);
+      setSuccess('Registered successfully. Please log in.');
+      onRegister(response.data.user);
       setFormData({ username: '', email: '', password: '', confirmPassword: '' });
     } catch (err) {
-      setError(err.message || 'Failed to register');
+      setError(err.response?.data?.error || 'Registration failed. Please try again.');
+      console.error('Registration error:', err);
     } finally {
       setIsLoading(false);
     }
@@ -69,7 +68,7 @@ const RegisterForm = ({ onRegister }) => {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <h2 className="text-2xl font-bold">Register</h2>
+        <h2 className="text-2xl font-bold">Register for {process.env.REACT_APP_NAME}</h2>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -80,6 +79,7 @@ const RegisterForm = ({ onRegister }) => {
             value={formData.username}
             onChange={handleChange}
             required
+            autoComplete="username"
           />
           <Input
             type="email"
@@ -88,6 +88,7 @@ const RegisterForm = ({ onRegister }) => {
             value={formData.email}
             onChange={handleChange}
             required
+            autoComplete="email"
           />
           <Input
             type="password"
@@ -96,6 +97,7 @@ const RegisterForm = ({ onRegister }) => {
             value={formData.password}
             onChange={handleChange}
             required
+            autoComplete="new-password"
           />
           <Input
             type="password"
@@ -104,6 +106,7 @@ const RegisterForm = ({ onRegister }) => {
             value={formData.confirmPassword}
             onChange={handleChange}
             required
+            autoComplete="new-password"
           />
           {error && (
             <Alert variant="destructive">

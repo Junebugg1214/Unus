@@ -20,6 +20,7 @@ from utils import allowed_file, save_uploaded_file, install_requirements
 from error_handlers import register_error_handlers
 from flask_talisman import Talisman
 from celery_worker import make_celery
+from flask_cors import CORS
 
 # Load environment variables
 load_dotenv()
@@ -29,17 +30,18 @@ def create_app(config_name='development'):
     # Initialize Flask app
     app = Flask(__name__)
     app.config.from_object(config[config_name])
-
+    
     # Initialize extensions
     jwt = JWTManager(app)
     csrf = CSRFProtect(app)
     db.init_app(app)
     migrate = Migrate(app, db)
     talisman = Talisman(app)
-
+    CORS(app)  # Enable CORS for all routes
+    
     # Register error handlers
     register_error_handlers(app)
-
+    
     # Security configuration with Talisman
     csp = {
         'default-src': ["'self'"],
@@ -48,73 +50,67 @@ def create_app(config_name='development'):
         'style-src': ["'self'", "'unsafe-inline'"]
     }
     talisman.content_security_policy = csp
-
+    
     # Set up logging
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
-
+    
     return app, csrf
 
 # Create the Flask app and Celery instance
 app, csrf = create_app(config_name='development')
 celery = make_celery(app)
 
-@celery.task(bind=True)
-def run_inference(self, repo_path, input_data):
+@app.route('/api/register', methods=['POST'])
+def register():
+    data = request.json
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+    
+    # Input validation
+    if not username or len(username) < 3 or len(username) > 25:
+        return jsonify({'error': 'Invalid username. Must be between 3 and 25 characters.'}), 400
+    if not email or not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        return jsonify({'error': 'Invalid email address.'}), 400
+    if not password or len(password) < 8:
+        return jsonify({'error': 'Invalid password. Must be at least 8 characters.'}), 400
+    
+    # Check if user already exists
+    if User.query.filter_by(username=username).first():
+        return jsonify({'error': 'Username already exists.'}), 400
+    if User.query.filter_by(email=email).first():
+        return jsonify({'error': 'Email already registered.'}), 400
+    
+    # Create new user
+    new_user = User(username=username, email=email)
+    new_user.set_password(password)
+    
     try:
-        # Input validation
-        if not os.path.exists(repo_path):
-            raise ValueError(f"Repository path does not exist: {repo_path}")
-
-        if not isinstance(input_data, str):
-            raise ValueError("Input data must be a string.")
-
-        # Run Docker container
-        client = docker.from_env()
-        container = client.containers.run(
-            'python:3.9',
-            command=f'python /app/main.py --input "{input_data}"',
-            volumes={repo_path: {'bind': '/app', 'mode': 'ro'}},
-            detach=True,
-            remove=True
-        )
-        # Add timeout (in seconds)
-        result = container.wait(timeout=600)  # Timeout of 10 minutes, for example
-        if result['StatusCode'] != 0:
-            raise RuntimeError(f"Inference script failed with status code {result['StatusCode']}.")
-
-        # Get container logs
-        output = container.logs().decode('utf-8')
-
-        # Log and return result
-        logger.info(f"Inference completed successfully: {output.strip()}")
-        return {'status': 'completed', 'result': output.strip()}
-
-    except docker.errors.ContainerError as e:
-        self.update_state(state='FAILURE', meta={'exc': str(e)})
-        logger.error(f"Container error during inference: {str(e)}")
-        raise e
-    except docker.errors.DockerException as e:
-        self.update_state(state='FAILURE', meta={'exc': str(e)})
-        logger.error(f"Docker error: {str(e)}")
-        raise e
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify({'message': 'User registered successfully.'}), 201
     except Exception as e:
-        self.update_state(state='FAILURE', meta={'exc': str(e)})
-        logger.error(f"Unexpected error during inference: {str(e)}")
-        raise e
+        db.session.rollback()
+        app.logger.error(f"Error during user registration: {str(e)}")
+        return jsonify({'error': 'An error occurred during registration. Please try again.'}), 500
 
 @app.route('/api/login', methods=['POST'])
 def login():
     username = request.json.get('username', None)
     password = request.json.get('password', None)
     
+    if not username or not password:
+        return jsonify({"error": "Username and password are required."}), 400
+    
     user = User.query.filter_by(username=username).first()
+    
     if user and user.check_password(password):
         access_token = create_access_token(identity=user.id)
         refresh_token = create_refresh_token(identity=user.id)
-        return jsonify(access_token=access_token, refresh_token=refresh_token), 200
+        return jsonify(access_token=access_token, refresh_token=refresh_token, user=user.to_dict()), 200
     
-    return jsonify({"msg": "Bad username or password"}), 401
+    return jsonify({"error": "Invalid username or password."}), 401
 
 @app.route('/api/protected', methods=['GET'])
 @jwt_required()

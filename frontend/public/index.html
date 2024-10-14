@@ -5,10 +5,7 @@
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#003366" />
-    <meta
-      name="description"
-      content="Unus - Democratizing AI Agents. Clone, manage, and interact with AI agents through a simplified web interface."
-    />
+    <meta name="description" content="Unus - Democratizing AI Agents. Clone, manage, and interact with AI agents through a simplified web interface." />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <link rel="stylesheet" href="%PUBLIC_URL%/styles.css" />
@@ -29,12 +26,34 @@
     <meta property="twitter:image" content="https://your-app-url.com/twitter-image.png" />
 
     <!-- Preconnect to external domains -->
-    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     
+    <!-- Security headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.your-app-url.com;">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+
+    <!-- Accessibility -->
+    <meta name="application-name" content="Unus">
+    <meta name="apple-mobile-web-app-title" content="Unus">
+
+    <!-- Performance optimization -->
+    <link rel="preload" href="%PUBLIC_URL%/styles.css" as="style">
+    <link rel="preload" href="%PUBLIC_URL%/logo192.png" as="image">
+
     <!-- Add any additional meta tags, scripts, or links here -->
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+    <!-- Inline script to detect user's preferred color scheme -->
+    <script>
+      (function() {
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.body.classList.add('dark-theme');
+        }
+      })();
+    </script>
   </body>
 </html>
