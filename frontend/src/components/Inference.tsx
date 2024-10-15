@@ -1,15 +1,23 @@
 import React, { useState } from 'react';
-import Button from '../ui/button';
-import Input from '../ui/input';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 import { Alert, AlertDescription } from '../ui/alert';
 import { Upload } from 'lucide-react';
 import api from '../../lib/api';
-import { validateRepoUrl, validateInferenceText } from '../../utils/validation';
+import { validateInferenceText } from '../../utils/validation';
 
-const Inference = ({ repos }) => {
+interface Repo {
+  name: string;
+}
+
+interface InferenceProps {
+  repos: Repo[];
+}
+
+const Inference: React.FC<InferenceProps> = ({ repos }) => {
   const [selectedRepo, setSelectedRepo] = useState('');
   const [inferenceText, setInferenceText] = useState('');
-  const [inferenceFile, setInferenceFile] = useState(null);
+  const [inferenceFile, setInferenceFile] = useState<File | null>(null);
   const [output, setOutput] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -34,21 +42,20 @@ const Inference = ({ repos }) => {
       formData.append('selectedRepo', selectedRepo);
       formData.append('inferenceText', inferenceText);
       if (inferenceFile) {
-        // Additional validation for file type or size can be done here
         formData.append('inferenceFile', inferenceFile);
       }
 
       const { taskId } = await api.runInference(formData);
       pollTaskStatus(taskId);
     } catch (err) {
-      setError(err.message || 'Failed to start inference');
+      setError(err instanceof Error ? err.message : 'Failed to start inference');
       setLoading(false);
     }
   };
 
-  const pollTaskStatus = async (taskId) => {
+  const pollTaskStatus = async (taskId: string) => {
     let retries = 0;
-    const maxRetries = 30; // Set a timeout limit
+    const maxRetries = 30;
 
     const interval = setInterval(async () => {
       try {
@@ -72,37 +79,41 @@ const Inference = ({ repos }) => {
     }, 2000);
   };
 
-  const handleRepoChange = (e) => {
+  const handleRepoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedRepo(e.target.value);
-    setError(''); // Clear error on change
+    setError('');
   };
 
-  const handleTextChange = (e) => {
+  const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInferenceText(e.target.value);
-    setError(''); // Clear error on change
+    setError('');
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file && file.size > 5 * 1024 * 1024) {
       setError('File size exceeds the 5MB limit');
     } else {
-      setInferenceFile(file);
-      setError(''); // Clear error on change if file is valid
+      setInferenceFile(file || null);
+      setError('');
     }
   };
 
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold">Run Inference</h2>
+      <label htmlFor="repo-select" className="block text-sm font-medium text-gray-700">
+        Select a repository
+      </label>
       <select
+        id="repo-select"
         value={selectedRepo}
         onChange={handleRepoChange}
         className="w-full p-2 border rounded"
       >
         <option value="">Select a repository</option>
         {repos.map((repo) => (
-          <option key={repo} value={repo}>{repo}</option>
+          <option key={repo.name} value={repo.name}>{repo.name}</option>
         ))}
       </select>
 

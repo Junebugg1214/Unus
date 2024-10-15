@@ -1,13 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Alert, AlertDescription } from '../components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Trash2 } from 'lucide-react';
-import { validateRepoUrl } from '../utils/validation';
-import api from '../services/api';
+import { validateRepoUrl } from '@/utils/validation';
+import axios from '@/lib/api';
 
-const RepoManagement = () => {
-  const [repos, setRepos] = useState([]);
+// Define the API methods
+const api = {
+  getRepos: () => axios.get('/repos'),
+  cloneRepository: (url: string) => axios.post('/clone', { repo_url: url }),
+  deleteRepo: (name: string) => axios.post('/delete_repo', { repo_name: name }),
+};
+
+const RepoManagement: React.FC = () => {
+  const [repos, setRepos] = useState<string[]>([]);
   const [newRepoUrl, setNewRepoUrl] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -31,7 +38,7 @@ const RepoManagement = () => {
     }
   };
 
-  const handleClone = async (e) => {
+  const handleClone = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -49,7 +56,7 @@ const RepoManagement = () => {
       setNewRepoUrl('');
       fetchRepos();
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to clone repository');
+      setError(err instanceof Error ? err.message : 'Failed to clone repository');
     } finally {
       setLoading(false);
       setTimeout(() => {
@@ -59,7 +66,7 @@ const RepoManagement = () => {
     }
   };
 
-  const handleDelete = async (repoName) => {
+  const handleDelete = async (repoName: string) => {
     setError('');
     setSuccess('');
     setLoading(true);
@@ -69,7 +76,7 @@ const RepoManagement = () => {
       setSuccess('Repository deleted successfully');
       fetchRepos();
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to delete repository');
+      setError(err instanceof Error ? err.message : 'Failed to delete repository');
     } finally {
       setLoading(false);
       setTimeout(() => {
@@ -84,10 +91,9 @@ const RepoManagement = () => {
       <h2 className="text-2xl font-bold">Manage Repositories</h2>
       <form onSubmit={handleClone} className="flex space-x-2 mb-4">
         <Input
-          type="text"
           placeholder="GitHub Repository URL"
           value={newRepoUrl}
-          onChange={(e) => setNewRepoUrl(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewRepoUrl(e.target.value)}
           required
           disabled={loading}
         />
@@ -96,12 +102,12 @@ const RepoManagement = () => {
         </Button>
       </form>
       {error && (
-        <Alert variant="destructive" aria-live="assertive">
+        <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
       {success && (
-        <Alert variant="success" aria-live="polite">
+        <Alert>
           <AlertDescription>{success}</AlertDescription>
         </Alert>
       )}
@@ -113,13 +119,18 @@ const RepoManagement = () => {
             repos.map((repo) => (
               <li key={repo} className="flex justify-between items-center p-2 bg-gray-100 rounded">
                 <span>{repo}</span>
-                <Button variant="outline" size="sm" onClick={() => handleDelete(repo)} disabled={loading}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDelete(repo)}
+                  disabled={loading}
+                >
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </li>
             ))
           ) : (
-            <p>No repositories cloned yet.</p>
+            <li className="p-2">No repositories cloned yet.</li>
           )}
         </ul>
       )}
@@ -128,4 +139,3 @@ const RepoManagement = () => {
 };
 
 export default RepoManagement;
-

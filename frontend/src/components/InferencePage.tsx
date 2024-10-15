@@ -1,16 +1,24 @@
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
-import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card'; // Adjusted path for common alias usage
-import { Button } from '@/components/ui/button'; // Adjusted path for common alias usage
-import { Input } from '@/components/ui/input'; // Adjusted path for common alias usage
-import { Textarea } from '@/components/ui/textarea'; // Adjusted path for common alias usage
-import { validateInferenceText } from '@/utils/validation'; // Adjusted path for common alias usage
-import api from '@/lib/api'; // Adjusted path for common alias usage
+import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { validateInferenceText } from '@/utils/validation';
+import api from '@/lib/api';
 
-const InferencePage = ({ repos, showAlert }) => {
+interface Repo {
+  name: string;
+}
+
+interface InferencePageProps {
+  repos: Repo[];
+  showAlert: (message: string, type: 'default' | 'destructive' | 'success' | 'warning') => void;
+}
+
+const InferencePage: React.FC<InferencePageProps> = ({ repos, showAlert }) => {
   const [selectedRepo, setSelectedRepo] = useState('');
   const [inferenceText, setInferenceText] = useState('');
-  const [inferenceFile, setInferenceFile] = useState(null);
+  const [inferenceFile, setInferenceFile] = useState<File | null>(null);
   const [output, setOutput] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -43,7 +51,7 @@ const InferencePage = ({ repos, showAlert }) => {
     }
   };
 
-  const checkTaskStatus = async (taskId) => {
+  const checkTaskStatus = async (taskId: string) => {
     try {
       const result = await api.getTaskStatus(taskId);
       if (result.state === 'PENDING' || result.state === 'STARTED') {
@@ -67,7 +75,11 @@ const InferencePage = ({ repos, showAlert }) => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
+          <label htmlFor="repo-select" className="block text-sm font-medium text-gray-700">
+            Select a repository
+          </label>
           <select
+            id="repo-select"
             value={selectedRepo}
             onChange={(e) => setSelectedRepo(e.target.value)}
             className="w-full p-2 border rounded"
@@ -87,7 +99,7 @@ const InferencePage = ({ repos, showAlert }) => {
           <div className="flex items-center space-x-2">
             <Input
               type="file"
-              onChange={(e) => setInferenceFile(e.target.files[0])}
+              onChange={(e) => setInferenceFile(e.target.files?.[0] || null)}
               className="hidden"
               id="file-upload"
             />
@@ -113,15 +125,6 @@ const InferencePage = ({ repos, showAlert }) => {
       )}
     </Card>
   );
-};
-
-InferencePage.propTypes = {
-  repos: PropTypes.arrayOf(
-    PropTypes.shape({
-      name: PropTypes.string.isRequired,
-    })
-  ).isRequired,
-  showAlert: PropTypes.func.isRequired,
 };
 
 export default InferencePage;
