@@ -27,8 +27,8 @@ load_dotenv()
 
 # Factory function to create Flask app and initialize components
 def create_app(config_name='development'):
-    # Initialize Flask app
-    app = Flask(__name__)
+    # Initialize Flask app, including static folder to serve React frontend
+    app = Flask(__name__, static_folder='../frontend/build')
     app.config.from_object(config[config_name])
     
     # Initialize extensions
@@ -60,6 +60,20 @@ def create_app(config_name='development'):
 # Create the Flask app and Celery instance
 app, csrf = create_app(config_name='development')
 celery = make_celery(app)
+
+# Serve the React frontend from the build folder
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_frontend(path):
+    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
+
+# Add a root route to respond to basic requests to '/'
+@app.route('/api/')
+def home():
+    return jsonify({"message": "Backend server is running."})
 
 @app.route('/api/register', methods=['POST'])
 def register():

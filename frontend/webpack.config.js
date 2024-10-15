@@ -26,7 +26,8 @@ module.exports = {
     fallback: {
       "fs": false,
       "path": require.resolve('path-browserify'),
-      "os": require.resolve('os-browserify/browser')
+      "os": require.resolve('os-browserify/browser'),
+      "process": require.resolve('process/browser')
     }
   },
 
