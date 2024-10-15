@@ -17,6 +17,12 @@ function useProvideAuth() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+
+  const setSuccessMessage = useCallback((message) => {
+    setSuccess(message);
+    setTimeout(() => setSuccess(null), 5000); // Clear the success message after 5 seconds
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -52,6 +58,7 @@ function useProvideAuth() {
       Cookies.set('accessToken', access_token, { expires: 1, secure: true, sameSite: 'strict' });
       Cookies.set('refreshToken', refresh_token, { expires: 7, secure: true, sameSite: 'strict' });
       setUser(user);
+      setSuccessMessage('Logged in successfully');
     } catch (error) {
       setError('Login failed. Please check your credentials and try again.');
       console.error('Login failed:', error);
@@ -59,7 +66,7 @@ function useProvideAuth() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [setSuccessMessage]);
 
   const logout = useCallback(async () => {
     try {
@@ -69,13 +76,14 @@ function useProvideAuth() {
       setUser(null);
       Cookies.remove('accessToken');
       Cookies.remove('refreshToken');
+      setSuccessMessage('Logged out successfully');
     } catch (error) {
       setError('Logout failed. Please try again.');
       console.error('Logout failed:', error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [setSuccessMessage]);
 
   const refreshToken = useCallback(async () => {
     try {
@@ -101,7 +109,7 @@ function useProvideAuth() {
       setLoading(true);
       setError(null);
       await api.updatePassword(currentPassword, newPassword);
-      setSuccess('Password updated successfully.');
+      setSuccessMessage('Password updated successfully.');
     } catch (error) {
       setError('Password update failed. Please try again.');
       console.error('Password update failed:', error);
@@ -109,12 +117,13 @@ function useProvideAuth() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [setSuccessMessage]);
 
   return {
     user,
     loading,
     error,
+    success,
     login,
     logout,
     updatePassword,
