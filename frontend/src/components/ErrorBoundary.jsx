@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Button } from '../components/ui/button';
+import { Button } from './ui/button';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
