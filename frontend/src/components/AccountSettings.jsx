@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Card, CardHeader, CardContent, CardFooter } from './ui/card';
-import { Alert, AlertDescription } from './ui/alert';
-import { Label } from './ui/label';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Label } from '@/components/ui/label';
 
 const AccountSettings = ({ user, onUpdatePassword }) => {
   const [formData, setFormData] = useState({
@@ -44,7 +44,7 @@ const AccountSettings = ({ user, onUpdatePassword }) => {
       setMessage({ text: 'Password updated successfully', type: 'success' });
       setFormData({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
     } catch (error) {
-      setMessage({ text: error.message || 'Failed to update password', type: 'error' });
+      setMessage({ text: error.message || 'Failed to update password. Please try again.', type: 'error' });
     } finally {
       setIsLoading(false);
     }
@@ -100,6 +100,9 @@ const AccountSettings = ({ user, onUpdatePassword }) => {
               required
             />
           </div>
+          <Button type="submit" disabled={isLoading} className="w-full">
+            {isLoading ? 'Updating...' : 'Update Password'}
+          </Button>
         </form>
       </CardContent>
       <CardFooter className="flex flex-col">
@@ -108,9 +111,6 @@ const AccountSettings = ({ user, onUpdatePassword }) => {
             <AlertDescription>{message.text}</AlertDescription>
           </Alert>
         )}
-        <Button type="submit" disabled={isLoading} className="w-full">
-          {isLoading ? 'Updating...' : 'Update Password'}
-        </Button>
       </CardFooter>
     </Card>
   );
@@ -125,3 +125,4 @@ AccountSettings.propTypes = {
 };
 
 export default AccountSettings;
+

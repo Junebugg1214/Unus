@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/Header';
-import HomePage from '../components/HomePage';
-import ManageReposPage from '../components/ManageReposPage';
-import InferencePage from '../components/InferencePage';
-import { Alert, AlertDescription } from './ui/alert';
-import api from '../lib/api';
+import Header from '@/components/Header';
+import HomePage from '@/components/HomePage';
+import ManageReposPage from '@/components/ManageReposPage';
+import InferencePage from '@/components/InferencePage';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import api from '@/lib/api';
 
 const UnusApp = ({ user }) => {
   const [currentPage, setCurrentPage] = useState('home');

@@ -11,17 +11,23 @@ const RepoManagement = () => {
   const [newRepoUrl, setNewRepoUrl] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
     fetchRepos();
   }, []);
 
   const fetchRepos = async () => {
+    setFetching(true);
+    setError('');
     try {
       const response = await api.getRepos();
       setRepos(response.data.repos);
     } catch (err) {
       setError('Failed to fetch repositories');
+    } finally {
+      setFetching(false);
     }
   };
 
@@ -36,6 +42,7 @@ const RepoManagement = () => {
       return;
     }
 
+    setLoading(true);
     try {
       await api.cloneRepository(newRepoUrl);
       setSuccess('Repository cloned successfully');
@@ -43,12 +50,19 @@ const RepoManagement = () => {
       fetchRepos();
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to clone repository');
+    } finally {
+      setLoading(false);
+      setTimeout(() => {
+        setSuccess('');
+        setError('');
+      }, 5000); // Clear messages after 5 seconds
     }
   };
 
   const handleDelete = async (repoName) => {
     setError('');
     setSuccess('');
+    setLoading(true);
 
     try {
       await api.deleteRepo(repoName);
@@ -56,6 +70,12 @@ const RepoManagement = () => {
       fetchRepos();
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to delete repository');
+    } finally {
+      setLoading(false);
+      setTimeout(() => {
+        setSuccess('');
+        setError('');
+      }, 5000); // Clear messages after 5 seconds
     }
   };
 
@@ -69,31 +89,43 @@ const RepoManagement = () => {
           value={newRepoUrl}
           onChange={(e) => setNewRepoUrl(e.target.value)}
           required
+          disabled={loading}
         />
-        <Button type="submit">Clone Repository</Button>
+        <Button type="submit" disabled={loading}>
+          {loading ? 'Cloning...' : 'Clone Repository'}
+        </Button>
       </form>
       {error && (
-        <Alert variant="destructive">
+        <Alert variant="destructive" aria-live="assertive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
       {success && (
-        <Alert variant="success">
+        <Alert variant="success" aria-live="polite">
           <AlertDescription>{success}</AlertDescription>
         </Alert>
       )}
-      <ul className="space-y-2">
-        {repos.map((repo) => (
-          <li key={repo} className="flex justify-between items-center p-2 bg-gray-100 rounded">
-            <span>{repo}</span>
-            <Button variant="outline" size="sm" onClick={() => handleDelete(repo)}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </li>
-        ))}
-      </ul>
+      {fetching ? (
+        <p>Loading repositories...</p>
+      ) : (
+        <ul className="space-y-2">
+          {repos.length > 0 ? (
+            repos.map((repo) => (
+              <li key={repo} className="flex justify-between items-center p-2 bg-gray-100 rounded">
+                <span>{repo}</span>
+                <Button variant="outline" size="sm" onClick={() => handleDelete(repo)} disabled={loading}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </li>
+            ))
+          ) : (
+            <p>No repositories cloned yet.</p>
+          )}
+        </ul>
+      )}
     </div>
   );
 };
 
 export default RepoManagement;
+

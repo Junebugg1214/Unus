@@ -13,11 +13,20 @@ const UnusApp = lazy(() => import('./components/UnusApp'));
 const AccountSettings = lazy(() => import('./components/AccountSettings'));
 const ExampleForm = lazy(() => import('./components/ExampleForm'));
 
+// Higher Order Component for Protected Routes
+const ProtectedRoute = ({ element, user }) => {
+  return user ? element : <Navigate to="/login" />;
+};
+
 function AppContent() {
   const { user, loading, error, login, logout, updatePassword, register } = useAuth();
 
   if (loading) {
-    return <LoadingSpinner />;
+    return (
+      <div className="loading-overlay">
+        <LoadingSpinner />
+      </div>
+    );
   }
 
   return (
@@ -32,9 +41,9 @@ function AppContent() {
         <Routes>
           <Route path="/login" element={user ? <Navigate to="/home" /> : <LoginForm onLogin={login} />} />
           <Route path="/register" element={user ? <Navigate to="/home" /> : <RegisterForm onRegister={register} />} />
-          <Route path="/home" element={user ? <UnusApp user={user} /> : <Navigate to="/login" />} />
-          <Route path="/account" element={user ? <AccountSettings user={user} onUpdatePassword={updatePassword} /> : <Navigate to="/login" />} />
-          <Route path="/example-form" element={user ? <ExampleForm /> : <Navigate to="/login" />} />
+          <Route path="/home" element={<ProtectedRoute user={user} element={<UnusApp user={user} />} />} />
+          <Route path="/account" element={<ProtectedRoute user={user} element={<AccountSettings user={user} onUpdatePassword={updatePassword} />} />} />
+          <Route path="/example-form" element={<ProtectedRoute user={user} element={<ExampleForm />} />} />
           <Route path="/" element={<Navigate to={user ? "/home" : "/login"} />} />
         </Routes>
       </Suspense>

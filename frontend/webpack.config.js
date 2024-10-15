@@ -1,4 +1,4 @@
-const path = require('path-browserify');
+const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { DefinePlugin } = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
@@ -52,6 +52,12 @@ module.exports = {
               name: '[name].[contenthash].[ext]',
             },
           },
+          {
+            loader: 'image-webpack-loader',
+            options: {
+              disable: process.env.NODE_ENV !== 'production', // Disable during development
+            },
+          },
         ],
       },
     ],
@@ -93,4 +99,6 @@ module.exports = {
       '/api': 'http://localhost:5000',
     },
   },
+
+  devtool: process.env.NODE_ENV === 'development' ? 'source-map' : false,
 };

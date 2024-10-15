@@ -1,7 +1,8 @@
-import * as React from "react"
-import { cn } from '../../lib/utils'  // Adjust this path if necessary
+import * as React from "react";
+import PropTypes from 'prop-types';
+import { cn } from '../../lib/utils';  // Adjust this path if necessary
 
-const Input = React.forwardRef(({ className, type, ...props }, ref) => {
+const Input = React.forwardRef(({ className, type = 'text', ariaLabel, ...props }, ref) => {
   return (
     <input
       type={type}
@@ -10,11 +11,27 @@ const Input = React.forwardRef(({ className, type, ...props }, ref) => {
         className
       )}
       ref={ref}
-      aria-label={props['aria-label'] || props.placeholder || ''}
+      aria-label={ariaLabel || props.placeholder || ''}
+      aria-labelledby={props['aria-labelledby']}
       {...props}
     />
-  )
-})
-Input.displayName = "Input"
+  );
+});
+Input.displayName = "Input";
 
-export { Input }
+// Define prop types for better type safety and clarity.
+Input.propTypes = {
+  className: PropTypes.string,
+  type: PropTypes.string,
+  ariaLabel: PropTypes.string,
+  placeholder: PropTypes.string,
+  'aria-labelledby': PropTypes.string,
+};
+
+// Define default props to ensure these values are available even if not explicitly provided.
+Input.defaultProps = {
+  className: '',
+  type: 'text',
+};
+
+export { Input };

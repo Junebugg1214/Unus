@@ -20,7 +20,8 @@ const RegisterForm = ({ onRegister }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prevData => ({ ...prevData, [name]: value }));
+    setFormData((prevData) => ({ ...prevData, [name]: value }));
+    setError(''); // Clear previous errors when user starts typing
   };
 
   const validateForm = () => {
@@ -28,7 +29,8 @@ const RegisterForm = ({ onRegister }) => {
       setError('Username must be between 3 and 25 characters');
       return false;
     }
-    if (!formData.email.includes('@') || !formData.email.includes('.')) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
       setError('Please enter a valid email address');
       return false;
     }
@@ -56,7 +58,11 @@ const RegisterForm = ({ onRegister }) => {
       const response = await api.register(formData.username, formData.email, formData.password);
       setSuccess('Registered successfully. Please log in.');
       onRegister(response.data.user);
+      // Clear form data
       setFormData({ username: '', email: '', password: '', confirmPassword: '' });
+
+      // Clear success message after a delay
+      setTimeout(() => setSuccess(''), 5000);
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed. Please try again.');
       console.error('Registration error:', err);
@@ -80,6 +86,8 @@ const RegisterForm = ({ onRegister }) => {
             onChange={handleChange}
             required
             autoComplete="username"
+            disabled={isLoading}
+            aria-describedby={error ? "register-error" : null}
           />
           <Input
             type="email"
@@ -89,6 +97,8 @@ const RegisterForm = ({ onRegister }) => {
             onChange={handleChange}
             required
             autoComplete="email"
+            disabled={isLoading}
+            aria-describedby={error ? "register-error" : null}
           />
           <Input
             type="password"
@@ -98,6 +108,8 @@ const RegisterForm = ({ onRegister }) => {
             onChange={handleChange}
             required
             autoComplete="new-password"
+            disabled={isLoading}
+            aria-describedby={error ? "register-error" : null}
           />
           <Input
             type="password"
@@ -107,14 +119,16 @@ const RegisterForm = ({ onRegister }) => {
             onChange={handleChange}
             required
             autoComplete="new-password"
+            disabled={isLoading}
+            aria-describedby={error ? "register-error" : null}
           />
           {error && (
-            <Alert variant="destructive">
+            <Alert variant="destructive" id="register-error" aria-live="assertive">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
           {success && (
-            <Alert variant="default">
+            <Alert variant="default" aria-live="polite">
               <AlertDescription>{success}</AlertDescription>
             </Alert>
           )}

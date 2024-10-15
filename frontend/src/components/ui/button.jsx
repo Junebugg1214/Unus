@@ -1,7 +1,7 @@
-import * as React from "react"
-import { Slot } from "@radix-ui/react-slot"
-import { cva } from "class-variance-authority"
-import { cn } from '../../lib/utils'  // Adjust this path if necessary
+import * as React from "react";
+import { Slot } from "@radix-ui/react-slot";
+import { cva } from "class-variance-authority";
+import { cn } from '../../lib/utils';  // Adjust this path if necessary
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
@@ -29,7 +29,43 @@ const buttonVariants = cva(
       size: "default",
     },
   }
-)
+);
+
+const LoadingSpinner = ({ variant }) => {
+  const spinnerColorClasses = {
+    default: "text-primary",
+    destructive: "text-red-500",
+    outline: "text-gray-500",
+    secondary: "text-secondary",
+    ghost: "text-accent",
+    link: "text-primary",
+    success: "text-green-500",
+    danger: "text-red-500",
+  };
+
+  return (
+    <svg
+      className={`animate-spin h-5 w-5 mr-2 ${spinnerColorClasses[variant] || "text-primary"}`}
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+      ></path>
+    </svg>
+  );
+};
 
 const Button = React.forwardRef(({ 
   className, 
@@ -40,42 +76,27 @@ const Button = React.forwardRef(({
   children,
   ...props 
 }, ref) => {
-  const Comp = asChild ? Slot : "button"
+  const Comp = asChild ? Slot : "button";
+
   return (
     <Comp
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonVariants({ variant, size, className }), isLoading && "cursor-wait")}
       ref={ref}
       disabled={props.disabled || isLoading}
+      aria-busy={isLoading}
       {...props}
     >
       {isLoading ? (
-        <span className="flex items-center justify-center">
-          <svg
-            className="animate-spin h-5 w-5 mr-2"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            ></circle>
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-            ></path>
-          </svg>
+        <span className="flex items-center justify-center" aria-live="polite">
+          <LoadingSpinner variant={variant} />
           Loading...
         </span>
-      ) : children}
+      ) : (
+        children
+      )}
     </Comp>
-  )
-})
-Button.displayName = "Button"
+  );
+});
+Button.displayName = "Button";
 
-export { Button, buttonVariants }
+export { Button, buttonVariants };

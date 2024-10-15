@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#003366" />
     <meta name="description" content="Unus - Democratizing AI Agents. Clone, manage, and interact with AI agents through a simplified web interface." />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/apple-touch-icon.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     <link rel="stylesheet" href="%PUBLIC_URL%/styles.css" />
     <title>Unus - Democratizing AI Agents</title>
@@ -27,12 +27,13 @@
 
     <!-- Preconnect to external domains -->
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    
+
     <!-- Security headers -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.your-app-url.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.your-trusted-cdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.your-app-url.com;">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <meta name="robots" content="index, follow">
 
     <!-- Accessibility -->
     <meta name="application-name" content="Unus">
@@ -41,19 +42,36 @@
     <!-- Performance optimization -->
     <link rel="preload" href="%PUBLIC_URL%/styles.css" as="style">
     <link rel="preload" href="%PUBLIC_URL%/logo192.png" as="image">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" as="style">
+    <link rel="preload" href="https://fonts.gstatic.com/s/roboto/v27/KFOmCnqEu92Fr1Mu72xKOzY.woff2" as="font" type="font/woff2" crossorigin>
 
-    <!-- Add any additional meta tags, scripts, or links here -->
+    <!-- Additional styles or scripts can be added here -->
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
+    <div id="root" role="main"></div>
+
     <!-- Inline script to detect user's preferred color scheme -->
-    <script>
-      (function() {
-        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    <script async>
+      document.addEventListener('DOMContentLoaded', function() {
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
           document.body.classList.add('dark-theme');
         }
-      })();
+      });
+    </script>
+
+    <!-- Service worker registration for offline capabilities -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('%PUBLIC_URL%/service-worker.js').then(function(registration) {
+            console.log('ServiceWorker registered with scope:', registration.scope);
+          }).catch(function(error) {
+            console.log('ServiceWorker registration failed:', error);
+          });
+        });
+      }
     </script>
   </body>
 </html>
+

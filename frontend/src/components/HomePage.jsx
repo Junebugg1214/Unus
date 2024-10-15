@@ -1,20 +1,29 @@
 import React, { useState } from 'react';
-import { Card, CardHeader, CardContent } from './ui/card';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { validateRepoUrl } from '../utils/validation';
+import PropTypes from 'prop-types';
+import { Card, CardHeader, CardContent } from '@/components/ui/card'; // Adjusted path to match common alias usage
+import { Button } from '@/components/ui/button'; // Adjusted path to match common alias usage
+import { Input } from '@/components/ui/input'; // Adjusted path to match common alias usage
+import { validateRepoUrl } from '@/utils/validation'; // Adjusted path to match common alias usage
 
-const HomePage = ({ user, onCloneRepo }) => {
+const HomePage = ({ user, onCloneRepo, showAlert }) => {
   const [githubUrl, setGithubUrl] = useState('');
 
   const handleClone = () => {
     const urlError = validateRepoUrl(githubUrl);
     if (urlError) {
-      // You might want to add a way to show errors here, perhaps by passing a showAlert function from the parent
+      if (showAlert) {
+        showAlert(urlError, 'destructive');
+      } else {
+        console.warn("Alert function not provided: " + urlError);
+      }
       return;
     }
-    onCloneRepo(githubUrl);
-    setGithubUrl('');
+    if (onCloneRepo) {
+      onCloneRepo(githubUrl);
+      setGithubUrl('');
+    } else {
+      console.warn("Clone handler function is not provided.");
+    }
   };
 
   return (
@@ -23,7 +32,9 @@ const HomePage = ({ user, onCloneRepo }) => {
         <h2 className="text-2xl font-bold">Welcome to Unus</h2>
       </CardHeader>
       <CardContent>
-        <p className="mb-4">Unus is an AI Agent Management Platform. Clone repositories, manage them, and run inferences with ease.</p>
+        <p className="mb-4">
+          Unus is an AI Agent Management Platform. Clone repositories, manage them, and run inferences with ease.
+        </p>
         {user ? (
           <div className="space-y-4">
             <Input
@@ -32,7 +43,9 @@ const HomePage = ({ user, onCloneRepo }) => {
               value={githubUrl}
               onChange={(e) => setGithubUrl(e.target.value)}
             />
-            <Button onClick={handleClone}>Clone Repository</Button>
+            <Button onClick={handleClone} disabled={!githubUrl.trim()}>
+              Clone Repository
+            </Button>
           </div>
         ) : (
           <p>Please log in or register to start using Unus.</p>
@@ -40,6 +53,12 @@ const HomePage = ({ user, onCloneRepo }) => {
       </CardContent>
     </Card>
   );
+};
+
+HomePage.propTypes = {
+  user: PropTypes.object,
+  onCloneRepo: PropTypes.func.isRequired,
+  showAlert: PropTypes.func, // Optional for alerting the user of errors
 };
 
 export default HomePage;

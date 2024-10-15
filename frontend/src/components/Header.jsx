@@ -1,8 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from './ui/button';
+import { Button } from '@/components/ui/button'; // Adjusted path to match common alias usage
 
 const Header = ({ user, onLogout }) => {
+  const handleLogout = () => {
+    if (onLogout) {
+      onLogout();
+    } else {
+      console.warn("Logout handler is not provided.");
+    }
+  };
+
   return (
     <header className="bg-white shadow-md">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -14,7 +22,7 @@ const Header = ({ user, onLogout }) => {
               <Link to="/account" className="text-gray-600 hover:text-gray-800">Account</Link>
               <Link to="/example-form" className="text-gray-600 hover:text-gray-800">Example Form</Link>
               <span className="text-gray-600">Welcome, {user.username}</span>
-              <Button onClick={onLogout} variant="outline">Logout</Button>
+              <Button onClick={handleLogout} variant="outline">Logout</Button>
             </div>
           ) : (
             <div className="space-x-4">
@@ -33,3 +41,4 @@ const Header = ({ user, onLogout }) => {
 };
 
 export default Header;
+

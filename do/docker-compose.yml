@@ -7,12 +7,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5000:5000"
-    environment:
-      FLASK_ENV: production
-      DATABASE_URL: postgresql://user:password@db:5432/unus
-      CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
-      SECRET_KEY: your-secret-key
+    env_file:
+      - ./backend/.env  # Secure environment variable management
     depends_on:
       - db
       - redis
@@ -20,6 +16,11 @@ services:
       - ./backend:/app  # Mounting backend code for development flexibility
     networks:
       - unus-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   frontend:
     build:
@@ -31,7 +32,7 @@ services:
       - backend
     volumes:
       - ./frontend:/app  # Mounting frontend code for development flexibility
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf  # Mounting custom nginx.conf for flexibility
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
     networks:
       - unus-network
 
@@ -45,9 +46,16 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - unus-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   redis:
     image: redis:6
+    volumes:
+      - redis_data:/data  # Optional: For persistent Redis storage
     networks:
       - unus-network
 
@@ -68,9 +76,15 @@ services:
       - ./backend:/app  # Mounting backend code for development flexibility
     networks:
       - unus-network
+    healthcheck:
+      test: ["CMD", "celery", "-A", "app.celery", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   postgres_data:
+  redis_data:
 
 networks:
   unus-network:

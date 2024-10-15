@@ -14,7 +14,8 @@ const LoginForm = ({ onLogin }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setCredentials(prevData => ({ ...prevData, [name]: value }));
+    setCredentials((prevData) => ({ ...prevData, [name]: value }));
+    setError(''); // Clear error on input change
   };
 
   const handleSubmit = async (e) => {
@@ -25,12 +26,13 @@ const LoginForm = ({ onLogin }) => {
     try {
       const response = await api.login(credentials.username, credentials.password);
       onLogin(response.data.user);
+      // Reset the form only after successful login
+      setCredentials({ username: '', password: '' });
     } catch (err) {
       setError(err.response?.data?.error || 'An error occurred during login');
       console.error('Login error:', err);
     } finally {
       setIsLoading(false);
-      setCredentials({ username: '', password: '' });
     }
   };
 
@@ -49,6 +51,8 @@ const LoginForm = ({ onLogin }) => {
             onChange={handleChange}
             required
             autoComplete="username"
+            disabled={isLoading}
+            aria-describedby={error ? "login-error" : null}
           />
           <Input
             type="password"
@@ -58,9 +62,11 @@ const LoginForm = ({ onLogin }) => {
             onChange={handleChange}
             required
             autoComplete="current-password"
+            disabled={isLoading}
+            aria-describedby={error ? "login-error" : null}
           />
           {error && (
-            <Alert variant="destructive">
+            <Alert variant="destructive" id="login-error" aria-live="assertive">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
@@ -83,3 +89,4 @@ LoginForm.propTypes = {
 };
 
 export default LoginForm;
+

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Card, CardHeader, CardContent, CardFooter } from './ui/card';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Textarea } from './ui/textarea';
-import { validateInferenceText } from '../utils/validation';
-import api from '../lib/api';
+import PropTypes from 'prop-types';
+import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card'; // Adjusted path for common alias usage
+import { Button } from '@/components/ui/button'; // Adjusted path for common alias usage
+import { Input } from '@/components/ui/input'; // Adjusted path for common alias usage
+import { Textarea } from '@/components/ui/textarea'; // Adjusted path for common alias usage
+import { validateInferenceText } from '@/utils/validation'; // Adjusted path for common alias usage
+import api from '@/lib/api'; // Adjusted path for common alias usage
 
 const InferencePage = ({ repos, showAlert }) => {
   const [selectedRepo, setSelectedRepo] = useState('');
@@ -22,7 +23,7 @@ const InferencePage = ({ repos, showAlert }) => {
       showAlert('Please enter text or upload a file for inference', 'destructive');
       return;
     }
-    
+
     const textError = validateInferenceText(inferenceText);
     if (textError) {
       showAlert(textError, 'destructive');
@@ -35,6 +36,7 @@ const InferencePage = ({ repos, showAlert }) => {
       showAlert('Inference task started', 'default');
       await checkTaskStatus(taskId);
     } catch (error) {
+      console.error("Error starting inference:", error);
       showAlert('Failed to start inference', 'destructive');
     } finally {
       setLoading(false);
@@ -53,6 +55,7 @@ const InferencePage = ({ repos, showAlert }) => {
         showAlert('Inference failed', 'destructive');
       }
     } catch (error) {
+      console.error("Error checking task status:", error);
       showAlert('Error checking task status', 'destructive');
     }
   };
@@ -71,7 +74,9 @@ const InferencePage = ({ repos, showAlert }) => {
           >
             <option value="">Select a repository</option>
             {repos.map((repo) => (
-              <option key={repo} value={repo}>{repo}</option>
+              <option key={repo.name} value={repo.name}>
+                {repo.name}
+              </option>
             ))}
           </select>
           <Textarea
@@ -110,4 +115,14 @@ const InferencePage = ({ repos, showAlert }) => {
   );
 };
 
+InferencePage.propTypes = {
+  repos: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  showAlert: PropTypes.func.isRequired,
+};
+
 export default InferencePage;
+

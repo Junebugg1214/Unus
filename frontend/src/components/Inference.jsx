@@ -34,6 +34,7 @@ const Inference = ({ repos }) => {
       formData.append('selectedRepo', selectedRepo);
       formData.append('inferenceText', inferenceText);
       if (inferenceFile) {
+        // Additional validation for file type or size can be done here
         formData.append('inferenceFile', inferenceFile);
       }
 
@@ -46,16 +47,21 @@ const Inference = ({ repos }) => {
   };
 
   const pollTaskStatus = async (taskId) => {
+    let retries = 0;
+    const maxRetries = 30; // Set a timeout limit
+
     const interval = setInterval(async () => {
       try {
         const status = await api.getTaskStatus(taskId);
+        retries += 1;
+
         if (status.state === 'SUCCESS') {
           clearInterval(interval);
           setOutput(status.result);
           setLoading(false);
-        } else if (status.state === 'FAILURE') {
+        } else if (status.state === 'FAILURE' || retries >= maxRetries) {
           clearInterval(interval);
-          setError('Inference failed');
+          setError(retries >= maxRetries ? 'Inference timed out' : 'Inference failed');
           setLoading(false);
         }
       } catch (err) {
@@ -66,12 +72,32 @@ const Inference = ({ repos }) => {
     }, 2000);
   };
 
+  const handleRepoChange = (e) => {
+    setSelectedRepo(e.target.value);
+    setError(''); // Clear error on change
+  };
+
+  const handleTextChange = (e) => {
+    setInferenceText(e.target.value);
+    setError(''); // Clear error on change
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file && file.size > 5 * 1024 * 1024) {
+      setError('File size exceeds the 5MB limit');
+    } else {
+      setInferenceFile(file);
+      setError(''); // Clear error on change if file is valid
+    }
+  };
+
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold">Run Inference</h2>
       <select
         value={selectedRepo}
-        onChange={(e) => setSelectedRepo(e.target.value)}
+        onChange={handleRepoChange}
         className="w-full p-2 border rounded"
       >
         <option value="">Select a repository</option>
@@ -84,13 +110,13 @@ const Inference = ({ repos }) => {
         type="text"
         placeholder="Enter text for inference"
         value={inferenceText}
-        onChange={(e) => setInferenceText(e.target.value)}
+        onChange={handleTextChange}
       />
 
       <div className="flex items-center space-x-2">
         <Input
           type="file"
-          onChange={(e) => setInferenceFile(e.target.files[0])}
+          onChange={handleFileChange}
           className="hidden"
           id="file-upload"
         />
@@ -123,3 +149,4 @@ const Inference = ({ repos }) => {
 };
 
 export default Inference;
+

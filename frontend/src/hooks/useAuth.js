@@ -19,20 +19,28 @@ function useProvideAuth() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    let isMounted = true;
     const initAuth = async () => {
       const accessToken = Cookies.get('accessToken');
       if (accessToken) {
         try {
           const response = await api.get('/validate-token');
-          setUser(response.data.user);
+          if (isMounted) setUser(response.data.user);
         } catch (error) {
-          Cookies.remove('accessToken');
-          Cookies.remove('refreshToken');
+          if (isMounted) {
+            setError('Session expired. Please login again.');
+            Cookies.remove('accessToken');
+            Cookies.remove('refreshToken');
+          }
         }
       }
-      setLoading(false);
+      if (isMounted) setLoading(false);
     };
     initAuth();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const login = useCallback(async (username, password) => {
@@ -69,11 +77,31 @@ function useProvideAuth() {
     }
   }, []);
 
+  const refreshToken = useCallback(async () => {
+    try {
+      const refresh_token = Cookies.get('refreshToken');
+      if (refresh_token) {
+        const response = await api.refreshToken(refresh_token);
+        const { access_token } = response.data;
+        Cookies.set('accessToken', access_token, { expires: 1, secure: true, sameSite: 'strict' });
+      } else {
+        throw new Error('No refresh token available');
+      }
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      setUser(null);
+      Cookies.remove('accessToken');
+      Cookies.remove('refreshToken');
+      setError('Session expired. Please login again.');
+    }
+  }, []);
+
   const updatePassword = useCallback(async (currentPassword, newPassword) => {
     try {
       setLoading(true);
       setError(null);
       await api.updatePassword(currentPassword, newPassword);
+      setSuccess('Password updated successfully.');
     } catch (error) {
       setError('Password update failed. Please try again.');
       console.error('Password update failed:', error);
@@ -89,6 +117,7 @@ function useProvideAuth() {
     error,
     login,
     logout,
-    updatePassword
+    updatePassword,
+    refreshToken
   };
 }

@@ -1,141 +1,182 @@
+:root {
+  --primary-color: #3b82f6;
+  --primary-hover-color: #2563eb;
+  --text-color: #333;
+  --bg-color: #f3f4f6;
+  --card-bg-color: #ffffff;
+  --alert-default-bg: #dbeafe;
+  --alert-default-text: #1e40af;
+  --alert-destructive-bg: #fee2e2;
+  --alert-destructive-text: #b91c1c;
+  --spacing-small: 0.5rem;
+  --spacing-medium: 1rem;
+  --spacing-large: 2rem;
+  --font-size-small: 0.875rem;
+  --font-size-large: 1.5rem;
+}
+
 /* General application container styling */
 .App {
-    text-align: center;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    background-color: #f3f4f6; /* Light gray background for better contrast */
-    color: #333; /* Neutral text color for readability */
-  }
-  
-  /* Header styles */
+  text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+/* Header styles */
+.App-header {
+  background-color: var(--card-bg-color);
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  padding: var(--spacing-medium);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-large);
+  color: #111827;
+}
+
+/* Header button group styling */
+.nav-buttons {
+  display: flex;
+  gap: var(--spacing-small);
+}
+
+/* Links within the app */
+.App-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.App-link:hover {
+  text-decoration: underline;
+}
+
+/* General card styles for content areas */
+.card {
+  max-width: 600px;
+  width: 90%;
+  margin: var(--spacing-large) auto;
+  padding: var(--spacing-medium);
+  background-color: var(--card-bg-color);
+  border-radius: 8px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Button styles */
+button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+/* Primary button styles */
+button.primary {
+  background-color: var(--primary-color);
+  color: #ffffff;
+}
+
+button.primary:hover {
+  background-color: var(--primary-hover-color);
+}
+
+button:focus-visible {
+  outline: 2px solid var(--primary-color);
+}
+
+/* Outline button styles */
+button.outline {
+  background-color: transparent;
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+}
+
+button.outline:hover {
+  background-color: var(--primary-color);
+  color: #ffffff;
+}
+
+/* Alert styles */
+.alert {
+  padding: var(--spacing-medium);
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.alert-default {
+  background-color: var(--alert-default-bg);
+  color: var(--alert-default-text);
+}
+
+.alert-destructive {
+  background-color: var(--alert-destructive-bg);
+  color: var(--alert-destructive-text);
+}
+
+/* Form and input elements */
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: var(--spacing-medium);
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0px 0px 3px var(--primary-color);
+}
+
+/* File input label */
+.file-label {
+  cursor: pointer;
+  background-color: #e5e7eb;
+  border: 1px dashed #6b7280;
+  padding: var(--spacing-medium);
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+
+.file-label:hover {
+  background-color: var(--bg-color);
+}
+
+/* Footer styles */
+.App-footer {
+  background-color: var(--card-bg-color);
+  padding: var(--spacing-medium);
+  box-shadow: 0px -4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  font-size: var(--font-size-small);
+  color: #6b7280;
+}
+
+/* Responsive styles for smaller screens */
+@media (max-width: 768px) {
   .App-header {
-    background-color: #ffffff; /* Neutral white background */
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for visual separation */
-    padding: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 1.5rem; /* Responsive font size */
-    color: #111827; /* Dark text for emphasis */
+    font-size: 1.25rem;
   }
-  
-  /* Header button group styling */
-  .nav-buttons {
-    display: flex;
-    gap: 0.5rem;
-  }
-  
-  /* Links within the app */
-  .App-link {
-    color: #3b82f6; /* Neutral blue for links */
-    text-decoration: none;
-    font-weight: 500;
-  }
-  
-  .App-link:hover {
-    text-decoration: underline;
-  }
-  
-  /* General card styles for content areas */
+
   .card {
-    max-width: 600px;
-    width: 90%;
-    margin: 2rem auto;
-    padding: 1.5rem;
-    background-color: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    width: 95%;
   }
-  
-  /* Button styles */
+
   button {
-    padding: 0.75rem 1.5rem;
-    border-radius: 4px;
-    border: none;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
+    padding: 0.5rem 1rem;
   }
-  
-  /* Primary button styles */
-  button.primary {
-    background-color: #3b82f6;
-    color: #ffffff;
-  }
-  
-  button.primary:hover {
-    background-color: #2563eb; /* Darker blue for hover effect */
-  }
-  
-  /* Outline button styles */
-  button.outline {
-    background-color: transparent;
-    color: #3b82f6;
-    border: 2px solid #3b82f6;
-  }
-  
-  button.outline:hover {
-    background-color: #3b82f6;
-    color: #ffffff;
-  }
-  
-  /* Alert styles */
-  .alert {
-    padding: 1rem;
-    border-radius: 4px;
-    margin-bottom: 1.5rem;
-    font-weight: 500;
-  }
-  
-  .alert-default {
-    background-color: #dbeafe; /* Light blue background for default alerts */
-    color: #1e40af; /* Dark blue text */
-  }
-  
-  .alert-destructive {
-    background-color: #fee2e2; /* Light red for error alerts */
-    color: #b91c1c; /* Dark red text */
-  }
-  
-  /* Form and input elements */
-  input, textarea, select {
-    width: 100%;
-    padding: 0.75rem;
-    margin-bottom: 1rem;
-    border: 1px solid #d1d5db;
-    border-radius: 4px;
-    box-sizing: border-box;
-  }
-  
-  input:focus, textarea:focus, select:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0px 0px 3px #3b82f6;
-  }
-  
-  /* File input label */
-  .file-label {
-    cursor: pointer;
-    background-color: #e5e7eb;
-    border: 1px dashed #6b7280;
-    padding: 1rem;
-    text-align: center;
-    transition: background-color 0.3s ease;
-  }
-  
-  .file-label:hover {
-    background-color: #f3f4f6;
-  }
-  
-  /* Footer styles */
-  .App-footer {
-    background-color: #ffffff;
-    padding: 1rem;
-    box-shadow: 0px -4px 6px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    font-size: 0.875rem;
-    color: #6b7280; /* Neutral gray for footer text */
-  }
+}
+
   
