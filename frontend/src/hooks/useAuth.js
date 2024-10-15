@@ -1,57 +1,57 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, createContext, useContext } from 'react';
 import Cookies from 'js-cookie';
 import api from '../lib/api';
 
+const AuthContext = createContext(null);
+
+export const AuthProvider = ({ children }) => {
+  const auth = useProvideAuth();
+  return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;
+};
+
 export const useAuth = () => {
+  return useContext(AuthContext);
+};
+
+function useProvideAuth() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const showAlert = useCallback((message) => {
-    // Assuming 'showAlert' is a function to show alerts to the user
-    alert(message); // Replace this with your own alert system
-  }, []);
-
   useEffect(() => {
-    const accessToken = Cookies.get('accessToken');
-    if (accessToken) {
-      // Validate token and set user
-      api.get('/validate-token')
-        .then((response) => {
+    const initAuth = async () => {
+      const accessToken = Cookies.get('accessToken');
+      if (accessToken) {
+        try {
+          const response = await api.get('/validate-token');
           setUser(response.data.user);
-        })
-        .catch(() => {
+        } catch (error) {
           Cookies.remove('accessToken');
           Cookies.remove('refreshToken');
-          showAlert('Session expired. Please login again.'); // Example usage
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    } else {
+        }
+      }
       setLoading(false);
-    }
-  }, [showAlert]);
+    };
+    initAuth();
+  }, []);
 
   const login = useCallback(async (username, password) => {
     try {
       setLoading(true);
       setError(null);
       const response = await api.login(username, password);
-      const { access_token, refresh_token } = response.data;
-
-      Cookies.set('accessToken', access_token, { expires: 1 });
-      Cookies.set('refreshToken', refresh_token, { expires: 7 });
-      setUser(username);
-    } catch (err) {
+      const { access_token, refresh_token, user } = response.data;
+      Cookies.set('accessToken', access_token, { expires: 1, secure: true, sameSite: 'strict' });
+      Cookies.set('refreshToken', refresh_token, { expires: 7, secure: true, sameSite: 'strict' });
+      setUser(user);
+    } catch (error) {
       setError('Login failed. Please check your credentials and try again.');
-      showAlert('Login failed. Please try again.'); // Example usage
-      console.error('Login failed:', err);
-      throw err;
+      console.error('Login failed:', error);
+      throw error;
     } finally {
       setLoading(false);
     }
-  }, [showAlert]);
+  }, []);
 
   const logout = useCallback(async () => {
     try {
@@ -61,46 +61,34 @@ export const useAuth = () => {
       setUser(null);
       Cookies.remove('accessToken');
       Cookies.remove('refreshToken');
-    } catch (err) {
+    } catch (error) {
       setError('Logout failed. Please try again.');
-      showAlert('Logout failed. Please try again.'); // Example usage
-      console.error('Logout failed:', err);
+      console.error('Logout failed:', error);
     } finally {
       setLoading(false);
     }
-  }, [showAlert]);
+  }, []);
 
-  const updatePassword = useCallback(async (newPassword) => {
+  const updatePassword = useCallback(async (currentPassword, newPassword) => {
     try {
       setLoading(true);
       setError(null);
-      await api.updatePassword(newPassword);
-      showAlert('Password updated successfully!'); // Example usage
-    } catch (err) {
+      await api.updatePassword(currentPassword, newPassword);
+    } catch (error) {
       setError('Password update failed. Please try again.');
-      showAlert('Password update failed. Please try again.'); // Example usage
-      console.error('Password update failed:', err);
+      console.error('Password update failed:', error);
+      throw error;
     } finally {
       setLoading(false);
     }
-  }, [showAlert]);
+  }, []);
 
-  const register = useCallback(async (username, email, password) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await api.register(username, email, password);
-      showAlert('Registration successful! Please log in.');
-      return response.data;
-    } catch (err) {
-      setError('Registration failed. Please try again.');
-      showAlert('Registration failed. Please try again.');
-      console.error('Registration failed:', err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [showAlert]);
-
-  return { user, loading, error, login, logout, updatePassword, register };
-};
+  return {
+    user,
+    loading,
+    error,
+    login,
+    logout,
+    updatePassword
+  };
+}
