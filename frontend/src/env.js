@@ -1,16 +1,9 @@
-import dotenv from 'dotenv';
+// Updated env.js without dotenv
+import process from 'process';
 
 const loadEnv = () => {
   const nodeEnv = process.env.NODE_ENV || 'development';
-  const envFileName = `.env.${nodeEnv}`;
-
-  const result = dotenv.config({ path: envFileName });
-
-  if (result.error) {
-    throw result.error;
-  }
-
-  console.log(`Loaded environment variables from ${envFileName}`);
+  console.log(`Environment: ${nodeEnv}`);
 };
 
 loadEnv();

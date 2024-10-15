@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('path-browserify');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { DefinePlugin } = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
@@ -23,6 +23,11 @@ module.exports = {
       '@utils': path.resolve(__dirname, 'src/utils'),
     },
     extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
+    fallback: {
+      "fs": false,
+      "path": require.resolve('path-browserify'),
+      "os": require.resolve('os-browserify/browser')
+    }
   },
 
   module: {
