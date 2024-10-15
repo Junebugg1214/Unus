@@ -95,9 +95,12 @@ module.exports = {
     historyApiFallback: true,
     compress: true,
     port: 9000,
-    proxy: {
-      '/api': 'http://localhost:5000',
-    },
+    proxy: [
+      {
+        context: ['/api'],
+        target: 'http://localhost:5000',
+      },
+    ],
   },
 
   devtool: process.env.NODE_ENV === 'development' ? 'source-map' : false,
