@@ -1,3 +1,5 @@
 from app import create_app
 
-app, _ = create_app('development')
+# Since create_app returns both app and csrf, unpack them
+app, _ = create_app('development')  # We only need the Flask app instance
+

@@ -14,6 +14,11 @@ const UnusApp = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  const showAlert = useCallback((message, type = 'default') => {
+    setAlert({ show: true, message, type });
+    setTimeout(() => setAlert({ show: false, message: '', type: 'default' }), 3000);
+  }, []);
+
   const fetchClonedRepos = useCallback(async () => {
     try {
       setLoading(true);
@@ -24,7 +29,7 @@ const UnusApp = ({ user }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [showAlert]);
 
   useEffect(() => {
     if (user) {
@@ -33,11 +38,6 @@ const UnusApp = ({ user }) => {
       navigate('/login');
     }
   }, [user, fetchClonedRepos, navigate]);
-
-  const showAlert = useCallback((message, type = 'default') => {
-    setAlert({ show: true, message, type });
-    setTimeout(() => setAlert({ show: false, message: '', type: 'default' }), 3000);
-  }, []);
 
   const handleCloneRepo = useCallback(async (githubUrl) => {
     try {
