@@ -22,11 +22,14 @@
       "@/lib/*": ["lib/*"],
       "@/assets/*": ["assets/*"],
       "@/services/*": ["services/*"],
-      "@/utils/*": ["utils/*"]
+      "@/utils/*": ["utils/*"],
+      "@testing-library/jest-dom": ["node_modules/@testing-library/jest-dom/extend-expect"]
     },
     "incremental": true,
     "sourceMap": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "types": ["node", "react", "react-dom", "jest", "testing-library__jest-dom"]
   },
   "include": [
     "src/**/*"
@@ -38,5 +41,3 @@
     "public"
   ]
 }
-
-  

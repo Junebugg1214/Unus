@@ -1,18 +1,29 @@
-import axios from 'axios';
+import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 import Cookies from 'js-cookie';
 
-const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
-  timeout: parseInt(process.env.REACT_APP_API_TIMEOUT, 10) || 5000,
+// Type declaration for js-cookie
+declare module 'js-cookie' {
+  interface CookiesStatic {
+    set(name: string, value: string, options?: Cookies.CookieAttributes): void;
+    get(name: string): string | undefined;
+    remove(name: string, options?: Cookies.CookieAttributes): void;
+  }
+  const Cookies: CookiesStatic;
+  export default Cookies;
+}
+
+const api: AxiosInstance = axios.create({
+  baseURL: process.env.REACT_APP_API_URL || '',
+  timeout: parseInt(process.env.REACT_APP_API_TIMEOUT || '5000', 10),
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
 // Utility function for setting tokens in cookies
-const setAccessToken = (accessToken) => {
+const setAccessToken = (accessToken: string): void => {
   Cookies.set('accessToken', accessToken, {
-    expires: parseInt(process.env.REACT_APP_TOKEN_EXPIRY_DAYS, 10) || 1,
+    expires: parseInt(process.env.REACT_APP_TOKEN_EXPIRY_DAYS || '1', 10),
     secure: true,
     sameSite: 'strict',
   });
@@ -20,24 +31,24 @@ const setAccessToken = (accessToken) => {
 
 // Request interceptor to add token to request headers
 api.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
     const token = Cookies.get('accessToken');
     if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+      config.headers.set('Authorization', `Bearer ${token}`);
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error: any) => Promise.reject(error)
 );
 
 // Refresh token function to keep API logic modular
-const refreshAccessToken = async () => {
+const refreshAccessToken = async (): Promise<string> => {
   const refreshToken = Cookies.get('refreshToken');
   if (!refreshToken) {
     throw new Error('No refresh token available');
   }
 
-  const response = await api.post('/refresh-token', { refreshToken });
+  const response = await api.post<{ accessToken: string }>('/refresh-token', { refreshToken });
   const { accessToken } = response.data;
   setAccessToken(accessToken);
   return accessToken;
@@ -45,8 +56,8 @@ const refreshAccessToken = async () => {
 
 // Response interceptor for handling errors and refreshing token when needed
 api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
+  (response: AxiosResponse): AxiosResponse => response,
+  async (error: any) => {
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -54,7 +65,7 @@ api.interceptors.response.use(
 
       try {
         const newAccessToken = await refreshAccessToken();
-        originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+        originalRequest.headers.set('Authorization', `Bearer ${newAccessToken}`);
         return api(originalRequest);
       } catch (refreshError) {
         // If refresh fails, log out the user
@@ -75,7 +86,7 @@ api.interceptors.response.use(
       alert('An unexpected error occurred. Please try again.');
     }
 
-    if (process.env.REACT_APP_ENV !== 'production') {
+    if (process.env.NODE_ENV !== 'production') {
       console.error('API Error:', error.response?.data || error.message);
     }
 
@@ -84,17 +95,29 @@ api.interceptors.response.use(
 );
 
 // API endpoints
-export const login = (username, password) => api.post('/login', { username, password });
+interface LoginResponse {
+  user: any;
+  accessToken: string;
+}
+
+export const login = (username: string, password: string) => 
+  api.post<LoginResponse>('/login', { username, password });
+
 export const logout = () => api.post('/logout');
-export const refreshToken = (refreshToken) => api.post('/refresh-token', { refreshToken });
-export const getClonedRepos = () => api.get('/cloned-repos');
-export const cloneRepository = (repoUrl) => api.post('/clone', { repoUrl });
-export const runInference = (repoName, inputText, inputFile) => {
+
+export const refreshToken = (refreshToken: string) => 
+  api.post<{ accessToken: string }>('/refresh-token', { refreshToken });
+
+export const getClonedRepos = () => api.get<string[]>('/cloned-repos');
+
+export const cloneRepository = (repoUrl: string) => api.post<void>('/clone', { repoUrl });
+
+export const runInference = (repoName: string, inputText: string, inputFile?: File) => {
   const formData = new FormData();
   formData.append('repoName', repoName);
   formData.append('inputText', inputText);
   if (inputFile) formData.append('inputFile', inputFile);
-  return api.post('/run-inference', formData, {
+  return api.post<any>('/run-inference', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
 };
