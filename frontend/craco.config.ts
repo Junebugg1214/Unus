@@ -33,6 +33,14 @@ const cracoConfig: CracoConfig = {
       return webpackConfig;
     },
   },
+  babel: {
+    plugins: [
+      '@babel/plugin-transform-react-jsx',  // Ensures JSX is properly transformed
+      '@babel/plugin-proposal-class-properties',
+      '@babel/plugin-proposal-optional-chaining',
+      '@babel/plugin-proposal-nullish-coalescing-operator',
+    ],
+  },
 };
 
 export default cracoConfig;

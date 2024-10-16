@@ -31,13 +31,6 @@
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "types": ["node", "react", "react-dom", "jest", "testing-library__jest-dom"]
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "build",
-    "dist",
-    "public"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "build", "dist", "public"]
 }

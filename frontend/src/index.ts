@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import ErrorBoundary from './components/ErrorBoundary';
-import './styles/globals.css'; // Update this line to import the new CSS file
+import './styles/globals.css';
 import './env';
 
 // Log environment information only in non-production
@@ -12,6 +12,7 @@ if (process.env.REACT_APP_ENV !== 'production') {
 }
 
 const rootElement = document.getElementById('root');
+if (!rootElement) throw new Error('Failed to find the root element');
 const root = ReactDOM.createRoot(rootElement);
 
 root.render(
@@ -21,4 +22,3 @@ root.render(
     </ErrorBoundary>
   </React.StrictMode>
 );
-
