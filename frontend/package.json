@@ -46,7 +46,8 @@
     "tailwindcss": "^3.1.6",
     "url": "^0.11.4",
     "webpack": "^5.95.0",
-    "webpack-cli": "^5.1.4"
+    "webpack-cli": "^5.1.4",
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.0-placeholder-for-preset-env.2"
   },
   "scripts": {
     "start": "craco start",
