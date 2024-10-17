@@ -1,24 +1,29 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 import Cookies from 'js-cookie';
 
-// Type declaration for js-cookie
-declare module 'js-cookie' {
-  interface CookiesStatic {
-    set(name: string, value: string, options?: Cookies.CookieAttributes): void;
-    get(name: string): string | undefined;
-    remove(name: string, options?: Cookies.CookieAttributes): void;
-  }
-  const Cookies: CookiesStatic;
-  export default Cookies;
+// Define a custom User interface
+export interface User {
+  id: string;
+  username: string;
+  email: string;
+  // other user properties if needed
 }
 
-const api: AxiosInstance = axios.create({
+// Define a custom API interface extending AxiosInstance
+interface CustomApiInstance extends AxiosInstance {
+  runInference: (formData: FormData) => Promise<{ taskId: string }>;
+  getTaskStatus: (taskId: string) => Promise<{ state: string; result?: string }>;
+  login: (username: string, password: string) => Promise<{ user: User }>;
+  register: (username: string, email: string, password: string) => Promise<{ user: User }>;
+}
+
+const api = axios.create({
   baseURL: process.env.REACT_APP_API_URL || '',
   timeout: parseInt(process.env.REACT_APP_API_TIMEOUT || '5000', 10),
   headers: {
     'Content-Type': 'application/json',
   },
-});
+}) as CustomApiInstance;
 
 // Utility function for setting tokens in cookies
 const setAccessToken = (accessToken: string): void => {
@@ -59,7 +64,6 @@ api.interceptors.response.use(
   (response: AxiosResponse): AxiosResponse => response,
   async (error: any) => {
     const originalRequest = error.config;
-
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
@@ -94,32 +98,33 @@ api.interceptors.response.use(
   }
 );
 
-// API endpoints
-interface LoginResponse {
-  user: any;
-  accessToken: string;
-}
-
-export const login = (username: string, password: string) => 
-  api.post<LoginResponse>('/login', { username, password });
-
-export const logout = () => api.post('/logout');
-
-export const refreshToken = (refreshToken: string) => 
-  api.post<{ accessToken: string }>('/refresh-token', { refreshToken });
-
-export const getClonedRepos = () => api.get<string[]>('/cloned-repos');
-
-export const cloneRepository = (repoUrl: string) => api.post<void>('/clone', { repoUrl });
-
-export const runInference = (repoName: string, inputText: string, inputFile?: File) => {
-  const formData = new FormData();
-  formData.append('repoName', repoName);
-  formData.append('inputText', inputText);
-  if (inputFile) formData.append('inputFile', inputFile);
-  return api.post<any>('/run-inference', formData, {
+// Add custom methods to the API instance
+api.runInference = async (formData: FormData) => {
+  const response = await api.post<{ taskId: string }>('/run-inference', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
+  return response.data;
+};
+
+api.getTaskStatus = async (taskId: string) => {
+  const response = await api.get<{ state: string; result?: string }>(`/inference/status/${taskId}`);
+  return response.data;
+};
+
+// Add login method to the API instance
+api.login = async (username: string, password: string) => {
+  const { data } = await api.post<{ user: User }>('/login', { username, password });
+  return data;
+};
+
+// Add register method to the API instance
+api.register = async (username: string, email: string, password: string) => {
+  const { data } = await api.post<{ user: User }>('/register', { username, email, password });
+  return data;
 };
 
 export default api;
+
+
+
+

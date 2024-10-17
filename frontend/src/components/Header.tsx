@@ -2,7 +2,17 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button'; // Adjusted path to match common alias usage
 
-const Header = ({ user, onLogout }) => {
+// Define types for props
+interface User {
+  username: string;
+}
+
+interface HeaderProps {
+  user?: User;
+  onLogout?: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
   const handleLogout = () => {
     if (onLogout) {
       onLogout();
@@ -41,4 +51,5 @@ const Header = ({ user, onLogout }) => {
 };
 
 export default Header;
+
 

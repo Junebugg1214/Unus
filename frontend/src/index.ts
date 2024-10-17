@@ -7,7 +7,9 @@ import './env';
 
 // Log environment information only in non-production
 if (process.env.REACT_APP_ENV !== 'production') {
+  // eslint-disable-next-line no-console
   console.log(`Running in ${process.env.REACT_APP_ENV} environment`);
+  // eslint-disable-next-line no-console
   console.log(`API URL: ${process.env.REACT_APP_API_URL}`);
 }
 
@@ -22,3 +24,6 @@ root.render(
     </ErrorBoundary>
   </React.StrictMode>
 );
+
+
+

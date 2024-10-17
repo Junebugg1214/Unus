@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -7,7 +6,11 @@ import { Card, CardHeader, CardContent, CardFooter } from '../components/ui/card
 import { Alert, AlertDescription } from '../components/ui/alert';
 import api from '../lib/api';
 
-const RegisterForm = ({ onRegister }) => {
+interface RegisterFormProps {
+  onRegister: (user: any) => void; // Replace `any` with correct user type if available
+}
+
+const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -18,7 +21,7 @@ const RegisterForm = ({ onRegister }) => {
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
     setError(''); // Clear previous errors when user starts typing
@@ -45,7 +48,7 @@ const RegisterForm = ({ onRegister }) => {
     return true;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -58,13 +61,12 @@ const RegisterForm = ({ onRegister }) => {
       const response = await api.register(formData.username, formData.email, formData.password);
       setSuccess('Registered successfully. Please log in.');
       onRegister(response.data.user);
-      // Clear form data
-      setFormData({ username: '', email: '', password: '', confirmPassword: '' });
-
-      // Clear success message after a delay
-      setTimeout(() => setSuccess(''), 5000);
-    } catch (err) {
-      setError(err.response?.data?.error || 'Registration failed. Please try again.');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An error occurred during registration');
+      }
       console.error('Registration error:', err);
     } finally {
       setIsLoading(false);
@@ -87,7 +89,7 @@ const RegisterForm = ({ onRegister }) => {
             required
             autoComplete="username"
             disabled={isLoading}
-            aria-describedby={error ? "register-error" : null}
+            aria-describedby={error ? "register-error" : undefined}
           />
           <Input
             type="email"
@@ -98,7 +100,7 @@ const RegisterForm = ({ onRegister }) => {
             required
             autoComplete="email"
             disabled={isLoading}
-            aria-describedby={error ? "register-error" : null}
+            aria-describedby={error ? "register-error" : undefined}
           />
           <Input
             type="password"
@@ -109,7 +111,7 @@ const RegisterForm = ({ onRegister }) => {
             required
             autoComplete="new-password"
             disabled={isLoading}
-            aria-describedby={error ? "register-error" : null}
+            aria-describedby={error ? "register-error" : undefined}
           />
           <Input
             type="password"
@@ -120,12 +122,14 @@ const RegisterForm = ({ onRegister }) => {
             required
             autoComplete="new-password"
             disabled={isLoading}
-            aria-describedby={error ? "register-error" : null}
+            aria-describedby={error ? "register-error" : undefined}
           />
           {error && (
-            <Alert variant="destructive" id="register-error" aria-live="assertive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+            <div id="register-error">
+              <Alert variant="destructive" aria-live="assertive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            </div>
           )}
           {success && (
             <Alert variant="default" aria-live="polite">
@@ -146,8 +150,5 @@ const RegisterForm = ({ onRegister }) => {
   );
 };
 
-RegisterForm.propTypes = {
-  onRegister: PropTypes.func.isRequired,
-};
-
 export default RegisterForm;
+

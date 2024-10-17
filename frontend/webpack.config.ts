@@ -1,107 +1,37 @@
-const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const { DefinePlugin } = require('webpack');
-const TerserPlugin = require('terser-webpack-plugin');
+import path from 'path';
+import { CleanWebpackPlugin } from 'clean-webpack-plugin';
+import webpack, { Configuration } from 'webpack';
 
-module.exports = {
-  mode: process.env.NODE_ENV || 'production',
-
-  entry: './src/index.js',
-
+const config: Configuration = {
+  entry: './src/index.tsx',
   output: {
-    filename: 'bundle.[contenthash].js',
     path: path.resolve(__dirname, 'dist'),
-    clean: true,
-    publicPath: '/',
+    filename: 'bundle.js',
   },
-
   resolve: {
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
-      '@components': path.resolve(__dirname, 'src/components'),
-      '@lib': path.resolve(__dirname, 'src/lib'),
-      '@utils': path.resolve(__dirname, 'src/utils'),
-    },
-    extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
-    fallback: {
-      "fs": false,
-      "path": require.resolve('path-browserify'),
-      "os": require.resolve('os-browserify/browser'),
-      "process": require.resolve('process/browser')
-    }
+    extensions: ['.ts', '.tsx', '.js'],
   },
-
   module: {
     rules: [
       {
-        test: /\.(js|jsx)$/,
+        test: /\.(ts|tsx)$/,
+        use: 'ts-loader',
         exclude: /node_modules/,
-        use: 'babel-loader',
-      },
-      {
-        test: /\.css$/,
-        use: ['style-loader', 'css-loader', 'postcss-loader'],
-      },
-      {
-        test: /\.(png|jpg|gif|svg)$/,
-        use: [
-          {
-            loader: 'file-loader',
-            options: {
-              outputPath: 'images',
-              name: '[name].[contenthash].[ext]',
-            },
-          },
-          {
-            loader: 'image-webpack-loader',
-            options: {
-              disable: process.env.NODE_ENV !== 'production', // Disable during development
-            },
-          },
-        ],
       },
     ],
   },
-
   plugins: [
-    new HtmlWebpackPlugin({
-      template: path.resolve(__dirname, 'public', 'index.html'),
-    }),
-    new DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+    new CleanWebpackPlugin(),
+    new webpack.DefinePlugin({
+      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     }),
   ],
-
-  optimization: {
-    minimize: true,
-    minimizer: [
-      new TerserPlugin({
-        terserOptions: {
-          compress: {
-            drop_console: true,
-          },
-        },
-      }),
-    ],
-    splitChunks: {
-      chunks: 'all',
-    },
-  },
-
   devServer: {
-    static: {
-      directory: path.join(__dirname, 'dist'),
-    },
-    historyApiFallback: true,
+    contentBase: path.join(__dirname, 'public'),
     compress: true,
     port: 9000,
-    proxy: [
-      {
-        context: ['/api'],
-        target: 'http://localhost:5000',
-      },
-    ],
   },
-
-  devtool: process.env.NODE_ENV === 'development' ? 'source-map' : false,
 };
+
+export default config;
+

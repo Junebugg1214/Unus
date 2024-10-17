@@ -1,73 +1,53 @@
-export const validateUsername = (username) => {
-  if (typeof username !== 'string' || username.trim().length < 3 || username.trim().length > 50) {
-    return 'Username must be between 3 and 50 characters.';
-  }
-  if (!/^[a-zA-Z0-9_]+$/.test(username.trim())) {
-    return 'Username can only contain letters, numbers, and underscores.';
-  }
-  return '';
-};
+// Validation functions
 
-export const validateEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email.trim())) {
-    return 'Invalid email address.';
-  }
-  return '';
-};
+// Validate a username
+export function validateUsername(username: string): boolean {
+  const regex = /^[a-zA-Z0-9_]{3,16}$/; // Example: alphanumeric with underscores, between 3 to 16 characters
+  return regex.test(username);
+}
 
-export const validatePassword = (password) => {
-  if (password.trim().length < 8) {
-    return 'Password must be at least 8 characters long.';
-  }
-  if (!/[A-Z]/.test(password) || !/[0-9]/.test(password) || !/[!@#$%^&*]/.test(password)) {
-    return 'Password must contain at least one uppercase letter, one number, and one special character (e.g., !@#$%^&*).';
-  }
-  return '';
-};
+// Validate an email
+export function validateEmail(email: string): boolean {
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Example email regex
+  return regex.test(email);
+}
 
-export const validateConfirmPassword = (password, confirmPassword) => {
-  if (password !== confirmPassword) {
-    return 'Passwords do not match.';
-  }
-  return '';
-};
+// Validate a password
+export function validatePassword(password: string): boolean {
+  // Password example rule: At least 8 characters, one uppercase, one lowercase, one number, and one special character
+  const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  return regex.test(password);
+}
 
-export const validateRepoUrl = (url) => {
-  const urlRegex = /^https:\/\/github\.com\/[\w-]+\/[\w-]+(\.git)?$/i;
-  if (!urlRegex.test(url.trim())) {
-    return 'Invalid GitHub repository URL.';
-  }
-  return '';
-};
+// Validate that passwords match
+export function validateConfirmPassword(password: string, confirmPassword: string): boolean {
+  return password === confirmPassword;
+}
 
-export const validateInputText = (inputText) => {
-  if (inputText.trim().length > 500) {
-    return 'Input text must be less than 500 characters.';
-  }
-  const disallowedCharacters = /[<>$;]/;
-  if (disallowedCharacters.test(inputText.trim())) {
-    return 'Input text contains disallowed characters.';
-  }
-  return '';
-};
+// Validate a URL
+export function validateURL(url: string): boolean {
+  const regex = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i; // Example URL regex
+  return regex.test(url);
+}
 
-export const validateInferenceText = (text) => {
-  if (!text.trim()) {
-    return 'Inference text must not be empty.';
-  }
-  return '';
-};
+// Validate that input text is not empty
+export function validateNotEmpty(inputText: string): boolean {
+  return inputText.trim().length > 0;
+}
 
-export const validateForm = (formData, validationRules) => {
-  const errors = {};
-  
-  for (const [field, validate] of Object.entries(validationRules)) {
-    const error = validate(formData[field]);
-    if (error) {
-      errors[field] = error;
-    }
+// Validate that text matches a specific pattern
+export function validatePattern(text: string, regex: RegExp): boolean {
+  return regex.test(text);
+}
+
+// Validate form data based on validation rules
+export function validateFormData(formData: Record<string, any>, validationRules: Record<string, (value: any) => boolean>): boolean {
+  for (const field in validationRules) {
+      const validate = validationRules[field];
+      if (validate && !validate(formData[field])) {
+          return false;
+      }
   }
-  
-  return errors;
-};
+  return true;
+}
+

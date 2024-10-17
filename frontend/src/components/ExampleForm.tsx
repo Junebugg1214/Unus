@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
 const ExampleForm = () => {
-  const handleSubmit = (event) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     // Handle form submission
     console.log('Form submitted');
@@ -50,4 +50,5 @@ const ExampleForm = () => {
 };
 
 export default ExampleForm;
+
 

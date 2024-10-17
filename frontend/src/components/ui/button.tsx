@@ -1,7 +1,17 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva } from "class-variance-authority";
-import { cn } from '../../lib/utils';  // Adjust this path if necessary
+import { cn } from "../../lib/utils"; // Adjust this path if necessary
+
+// Define the props interface for the Button component
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  className?: string;
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link' | 'success' | 'danger';
+  size?: 'default' | 'sm' | 'lg' | 'icon';
+  asChild?: boolean;
+  isLoading?: boolean;
+  children?: React.ReactNode;
+}
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
@@ -31,21 +41,21 @@ const buttonVariants = cva(
   }
 );
 
-const LoadingSpinner = ({ variant }) => {
-  const spinnerColorClasses = {
-    default: "text-primary",
-    destructive: "text-red-500",
-    outline: "text-gray-500",
-    secondary: "text-secondary",
-    ghost: "text-accent",
-    link: "text-primary",
-    success: "text-green-500",
-    danger: "text-red-500",
-  };
+const spinnerColorClasses: Record<'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link' | 'success' | 'danger', string> = {
+  default: "text-primary",
+  destructive: "text-red-500",
+  outline: "text-gray-500",
+  secondary: "text-secondary",
+  ghost: "text-accent",
+  link: "text-primary",
+  success: "text-green-500",
+  danger: "text-red-500",
+};
 
+const LoadingSpinner: React.FC<{ variant?: keyof typeof spinnerColorClasses }> = ({ variant = 'default' }) => {
   return (
     <svg
-      className={`animate-spin h-5 w-5 mr-2 ${spinnerColorClasses[variant] || "text-primary"}`}
+      className={`animate-spin h-5 w-5 mr-2 ${spinnerColorClasses[variant]}`}
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
@@ -67,14 +77,14 @@ const LoadingSpinner = ({ variant }) => {
   );
 };
 
-const Button = React.forwardRef(({ 
-  className, 
-  variant, 
-  size, 
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
+  className,
+  variant = 'default',
+  size = 'default',
   asChild = false,
   isLoading = false,
   children,
-  ...props 
+  ...props
 }, ref) => {
   const Comp = asChild ? Slot : "button";
 
@@ -97,6 +107,7 @@ const Button = React.forwardRef(({
     </Comp>
   );
 });
+
 Button.displayName = "Button";
 
 export { Button, buttonVariants };

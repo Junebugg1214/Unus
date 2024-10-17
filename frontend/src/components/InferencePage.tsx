@@ -40,7 +40,14 @@ const InferencePage: React.FC<InferencePageProps> = ({ repos, showAlert }) => {
 
     setLoading(true);
     try {
-      const taskId = await api.runInference(selectedRepo, inferenceText, inferenceFile);
+      const formData = new FormData();
+      formData.append('selectedRepo', selectedRepo);
+      formData.append('inferenceText', inferenceText);
+      if (inferenceFile) {
+        formData.append('inferenceFile', inferenceFile);
+      }
+
+      const { taskId } = await api.runInference(formData);
       showAlert('Inference task started', 'default');
       await checkTaskStatus(taskId);
     } catch (error) {
@@ -54,18 +61,21 @@ const InferencePage: React.FC<InferencePageProps> = ({ repos, showAlert }) => {
   const checkTaskStatus = async (taskId: string) => {
     try {
       const result = await api.getTaskStatus(taskId);
-      if (result.state === 'PENDING' || result.state === 'STARTED') {
+      if (result.state === 'PENDING' || result.state === 'RUNNING') {
         setTimeout(() => checkTaskStatus(taskId), 2000);
       } else if (result.state === 'SUCCESS') {
-        setOutput(result.result);
-        showAlert('Inference completed', 'default');
-      } else if (result.state === 'FAILURE') {
-        showAlert('Inference failed', 'destructive');
+        setOutput(result.result || 'No result available');
+      } else {
+        showAlert('Inference task failed', 'destructive');
       }
     } catch (error) {
       console.error("Error checking task status:", error);
       showAlert('Error checking task status', 'destructive');
     }
+  };
+
+  const handleRepoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedRepo(e.target.value || '');
   };
 
   return (
@@ -81,7 +91,7 @@ const InferencePage: React.FC<InferencePageProps> = ({ repos, showAlert }) => {
           <select
             id="repo-select"
             value={selectedRepo}
-            onChange={(e) => setSelectedRepo(e.target.value)}
+            onChange={handleRepoChange}
             className="w-full p-2 border rounded"
           >
             <option value="">Select a repository</option>
@@ -128,4 +138,5 @@ const InferencePage: React.FC<InferencePageProps> = ({ repos, showAlert }) => {
 };
 
 export default InferencePage;
+
 

@@ -1,20 +1,28 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import React, { ReactNode } from 'react';
 import { Button } from './ui/button';
 
-class ErrorBoundary extends React.Component {
-  constructor(props) {
+interface ErrorBoundaryProps {
+  children: ReactNode;
+  logError?: (error: Error, errorInfo: React.ErrorInfo) => void;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     // Update state so the next render shows the fallback UI.
     return { hasError: true };
   }
 
-  componentDidCatch(error, errorInfo) {
-    // You can also log the error to an error reporting service
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    // Log the error to an error reporting service
     console.error('Uncaught error:', error, errorInfo);
     if (process.env.REACT_APP_ENV === 'production' && typeof this.props.logError === 'function') {
       this.props.logError(error, errorInfo);
@@ -43,9 +51,5 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-ErrorBoundary.propTypes = {
-  children: PropTypes.node.isRequired,
-  logError: PropTypes.func,
-};
-
 export default ErrorBoundary;
+

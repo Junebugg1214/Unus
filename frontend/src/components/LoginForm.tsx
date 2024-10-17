@@ -1,24 +1,27 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import PropTypes from 'prop-types';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardHeader, CardContent, CardFooter } from '../components/ui/card';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import api from '../lib/api';
 
-const LoginForm = ({ onLogin }) => {
+interface LoginFormProps {
+  onLogin: (user: any) => void; // Replace `any` with the correct user type if available
+}
+
+const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setCredentials((prevData) => ({ ...prevData, [name]: value }));
     setError(''); // Clear error on input change
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
@@ -28,8 +31,12 @@ const LoginForm = ({ onLogin }) => {
       onLogin(response.data.user);
       // Reset the form only after successful login
       setCredentials({ username: '', password: '' });
-    } catch (err) {
-      setError(err.response?.data?.error || 'An error occurred during login');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An error occurred during login');
+      }
       console.error('Login error:', err);
     } finally {
       setIsLoading(false);
@@ -52,7 +59,7 @@ const LoginForm = ({ onLogin }) => {
             required
             autoComplete="username"
             disabled={isLoading}
-            aria-describedby={error ? "login-error" : null}
+            aria-describedby={error ? "login-error" : undefined}
           />
           <Input
             type="password"
@@ -63,12 +70,14 @@ const LoginForm = ({ onLogin }) => {
             required
             autoComplete="current-password"
             disabled={isLoading}
-            aria-describedby={error ? "login-error" : null}
+            aria-describedby={error ? "login-error" : undefined}
           />
           {error && (
-            <Alert variant="destructive" id="login-error" aria-live="assertive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+            <div id="login-error">
+              <Alert variant="destructive" aria-live="assertive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            </div>
           )}
           <Button type="submit" disabled={isLoading}>
             {isLoading ? 'Logging in...' : 'Login'}
@@ -84,9 +93,6 @@ const LoginForm = ({ onLogin }) => {
   );
 };
 
-LoginForm.propTypes = {
-  onLogin: PropTypes.func.isRequired,
-};
-
 export default LoginForm;
+
 

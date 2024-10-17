@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Alert, AlertDescription } from '../ui/alert';
+import { Button } from '@/components/ui/button'; // Updated to use alias, adjust if necessary
+import { Input } from '@/components/ui/input';  // Updated to use alias, adjust if necessary
+import { Alert, AlertDescription } from '@/components/ui/alert';  // Updated to use alias, adjust if necessary
 import { Upload } from 'lucide-react';
-import api from '../../lib/api';
-import { validateInferenceText } from '../../utils/validation';
+import api from '@/lib/api';  // Updated to use alias, adjust if necessary
+import { validateInferenceText } from '@/utils/validation';  // Updated to use alias, adjust if necessary
 
 interface Repo {
   name: string;
@@ -45,7 +45,7 @@ const Inference: React.FC<InferenceProps> = ({ repos }) => {
         formData.append('inferenceFile', inferenceFile);
       }
 
-      const { taskId } = await api.runInference(formData);
+      const { taskId } = await api.runInference!(formData);
       pollTaskStatus(taskId);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start inference');
@@ -59,21 +59,21 @@ const Inference: React.FC<InferenceProps> = ({ repos }) => {
 
     const interval = setInterval(async () => {
       try {
-        const status = await api.getTaskStatus(taskId);
+        const status = await api.getTaskStatus!(taskId);
         retries += 1;
 
         if (status.state === 'SUCCESS') {
           clearInterval(interval);
-          setOutput(status.result);
+          setOutput(status.result || 'No result available');
           setLoading(false);
         } else if (status.state === 'FAILURE' || retries >= maxRetries) {
           clearInterval(interval);
-          setError(retries >= maxRetries ? 'Inference timed out' : 'Inference failed');
+          setError('Inference task failed or timed out');
           setLoading(false);
         }
       } catch (err) {
         clearInterval(interval);
-        setError('Error polling task status');
+        setError(err instanceof Error ? err.message : 'Error polling task status');
         setLoading(false);
       }
     }, 2000);
@@ -81,12 +81,10 @@ const Inference: React.FC<InferenceProps> = ({ repos }) => {
 
   const handleRepoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedRepo(e.target.value);
-    setError('');
   };
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInferenceText(e.target.value);
-    setError('');
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -160,4 +158,3 @@ const Inference: React.FC<InferenceProps> = ({ repos }) => {
 };
 
 export default Inference;
-

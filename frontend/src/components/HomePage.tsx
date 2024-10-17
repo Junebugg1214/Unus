@@ -1,11 +1,20 @@
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
 import { Card, CardHeader, CardContent } from '@/components/ui/card'; // Adjusted path to match common alias usage
 import { Button } from '@/components/ui/button'; // Adjusted path to match common alias usage
 import { Input } from '@/components/ui/input'; // Adjusted path to match common alias usage
 import { validateRepoUrl } from '@/utils/validation'; // Adjusted path to match common alias usage
 
-const HomePage = ({ user, onCloneRepo, showAlert }) => {
+// Define types for props
+interface HomePageProps {
+  user?: {
+    username: string;
+    email: string;
+  };
+  onCloneRepo: (url: string) => void;
+  showAlert?: (message: string, type: 'destructive' | 'default') => void;
+}
+
+const HomePage: React.FC<HomePageProps> = ({ user, onCloneRepo, showAlert }) => {
   const [githubUrl, setGithubUrl] = useState('');
 
   const handleClone = () => {
@@ -53,12 +62,6 @@ const HomePage = ({ user, onCloneRepo, showAlert }) => {
       </CardContent>
     </Card>
   );
-};
-
-HomePage.propTypes = {
-  user: PropTypes.object,
-  onCloneRepo: PropTypes.func.isRequired,
-  showAlert: PropTypes.func, // Optional for alerting the user of errors
 };
 
 export default HomePage;

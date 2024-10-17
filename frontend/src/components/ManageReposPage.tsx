@@ -1,14 +1,26 @@
 import React, { useState } from 'react';
-import PropTypes from 'prop-types';
 import { Card, CardHeader, CardContent } from '@/components/ui/card'; // Adjusted path for common alias usage
 import { Button } from '@/components/ui/button'; // Adjusted path for common alias usage
 import { Alert, AlertDescription } from '@/components/ui/alert'; // Adding alerts to provide feedback to users
 
-const ManageReposPage = ({ repos, onDeleteRepo }) => {
-  const [loadingRepo, setLoadingRepo] = useState(null);
-  const [alert, setAlert] = useState({ show: false, message: '', type: 'default' });
+interface Repo {
+  name: string;
+}
 
-  const handleDeleteRepo = async (repoName) => {
+interface ManageReposPageProps {
+  repos: Repo[];
+  onDeleteRepo: (repoName: string) => Promise<void>;
+}
+
+const ManageReposPage: React.FC<ManageReposPageProps> = ({ repos, onDeleteRepo }) => {
+  const [loadingRepo, setLoadingRepo] = useState<string | null>(null);
+  const [alert, setAlert] = useState<{ show: boolean; message: string; type: 'default' | 'success' | 'destructive' }>({
+    show: false,
+    message: '',
+    type: 'default',
+  });
+
+  const handleDeleteRepo = async (repoName: string) => {
     setLoadingRepo(repoName);
     try {
       await onDeleteRepo(repoName);
@@ -36,13 +48,13 @@ const ManageReposPage = ({ repos, onDeleteRepo }) => {
       </CardHeader>
       <CardContent>
         {alert.show && (
-          <Alert variant={alert.type} className="mb-4">
+          <Alert variant={alert.type}>
             <AlertDescription>{alert.message}</AlertDescription>
           </Alert>
         )}
         {repos.length > 0 ? (
           <ul className="space-y-2">
-            {repos.map((repo) => (
+            {repos.map((repo: Repo) => (
               <li
                 key={repo.name}
                 className="flex justify-between items-center p-2 bg-gray-100 rounded"
@@ -67,14 +79,4 @@ const ManageReposPage = ({ repos, onDeleteRepo }) => {
   );
 };
 
-ManageReposPage.propTypes = {
-  repos: PropTypes.arrayOf(
-    PropTypes.shape({
-      name: PropTypes.string.isRequired,
-    })
-  ).isRequired,
-  onDeleteRepo: PropTypes.func.isRequired,
-};
-
 export default ManageReposPage;
-
