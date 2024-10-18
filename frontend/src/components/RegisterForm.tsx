@@ -6,8 +6,15 @@ import { Card, CardHeader, CardContent, CardFooter } from '../components/ui/card
 import { Alert, AlertDescription } from '../components/ui/alert';
 import api from '../lib/api';
 
+interface User {
+  id: string;
+  username: string;
+  email: string;
+  // Add other user properties as needed
+}
+
 interface RegisterFormProps {
-  onRegister: (user: any) => void; // Replace `any` with correct user type if available
+  onRegister: (username: string, email: string, password: string) => Promise<void>;
 }
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
@@ -51,16 +58,18 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
-
-    if (!validateForm()) return;
-
     setIsLoading(true);
+
+    if (!validateForm()) {
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const response = await api.register(formData.username, formData.email, formData.password);
-      setSuccess('Registered successfully. Please log in.');
-      onRegister(response.data.user);
+      await onRegister(formData.username, formData.email, formData.password); // Fixed: Added second and third arguments 'email' and 'password'
+      setSuccess('Registration successful!');
+      setFormData({ username: '', email: '', password: '', confirmPassword: '' });
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -151,4 +160,5 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
 };
 
 export default RegisterForm;
+
 

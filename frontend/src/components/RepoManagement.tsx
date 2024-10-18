@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Trash2 } from 'lucide-react';
-import { validateRepoUrl } from '@/utils/validation';
+import { validateURL } from '@/utils/validation';
 import axios from '@/lib/api';
 
 // Define the API methods
@@ -33,6 +33,7 @@ const RepoManagement: React.FC = () => {
       setRepos(response.data.repos);
     } catch (err) {
       setError('Failed to fetch repositories');
+      console.error('Error fetching repos:', err);
     } finally {
       setFetching(false);
     }
@@ -43,7 +44,7 @@ const RepoManagement: React.FC = () => {
     setError('');
     setSuccess('');
 
-    const urlError = validateRepoUrl(newRepoUrl);
+    const urlError = validateURL(newRepoUrl);
     if (urlError) {
       setError(urlError);
       return;
@@ -57,6 +58,7 @@ const RepoManagement: React.FC = () => {
       fetchRepos();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to clone repository');
+      console.error('Error cloning repo:', err);
     } finally {
       setLoading(false);
       setTimeout(() => {
@@ -77,6 +79,7 @@ const RepoManagement: React.FC = () => {
       fetchRepos();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete repository');
+      console.error('Error deleting repo:', err);
     } finally {
       setLoading(false);
       setTimeout(() => {
@@ -96,6 +99,7 @@ const RepoManagement: React.FC = () => {
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewRepoUrl(e.target.value)}
           required
           disabled={loading}
+          aria-label="GitHub Repository URL"
         />
         <Button type="submit" disabled={loading}>
           {loading ? 'Cloning...' : 'Clone Repository'}
@@ -124,6 +128,7 @@ const RepoManagement: React.FC = () => {
                   size="sm"
                   onClick={() => handleDelete(repo)}
                   disabled={loading}
+                  aria-label={`Delete ${repo}`}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>

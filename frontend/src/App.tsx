@@ -1,64 +1,80 @@
-import React, { FC, useContext, Suspense } from 'react';
+import React, { FC, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthContext, AuthProvider, AuthContextValue } from '@/context/AuthProvider'; // Ensure AuthContext is properly exported
-import AppContent from '@/components/AppContent'; // Ensure correct path and case
-import Alert, { AlertDescription } from '@/components/Alert';
+import { AuthProvider, useAuth } from '@/hooks/useAuth';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import Header from '@/components/Header';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import LoginForm from '@/components/LoginForm';
 import RegisterForm from '@/components/RegisterForm';
 import AccountSettings from '@/components/AccountSettings';
 import ErrorBoundary from '@/components/ErrorBoundary';
+// Remove the import for AppContent if it doesn't exist
+// import AppContent from '@/components/AppContent';
+
+// Create a simple Dashboard component as a placeholder
+const Dashboard: FC = () => <div>Dashboard Content</div>;
 
 const App: FC = () => {
-    const authContext = useContext(AuthContext);
+  return (
+    <AuthProvider>
+      <ErrorBoundary>
+        <AppRouter />
+      </ErrorBoundary>
+    </AuthProvider>
+  );
+};
 
-    if (!authContext) {
-        throw new Error("AuthContext is not available");
-    }
+const AppRouter: FC = () => {
+  const { user, login, logout, register, updatePassword } = useAuth();
 
-    const { user, loading, error, register, updatePassword } = authContext;
-
-    if (loading) {
-        return <LoadingSpinner />;
-    }
-
-    if (error) {
-        return (
-            <Alert variant="danger">
-                <AlertDescription>{error.message}</AlertDescription>
-            </Alert>
-        );
-    }
-
+  if (!user) {
     return (
-        <AuthProvider>
-            <ErrorBoundary>
-                <Router>
-                    <Header onLogout={() => console.log('Logged out')} />
-                    <Suspense fallback={<LoadingSpinner />}>
-                        <Routes>
-                            <Route path="/login" element={<LoginForm onLogin={() => console.log('Logged in')} />} />
-                            <Route path="/register" element={<RegisterForm onRegister={() => register()} />} />
-                            {user && (
-                                <>
-                                    <Route
-                                        path="/account-settings"
-                                        element={
-                                            <AccountSettings onUpdatePassword={() => updatePassword()} />
-                                        }
-                                    />
-                                    <Route path="/" element={<AppContent />} />
-                                </>
-                            )}
-                            <Route path="*" element={<Navigate to={user ? '/' : '/login'} />} />
-                        </Routes>
-                    </Suspense>
-                </Router>
-            </ErrorBoundary>
-        </AuthProvider>
+      <Router>
+        <Suspense fallback={<LoadingSpinner />}>
+          <Routes>
+            <Route 
+              path="/login" 
+              element={
+                <LoginForm 
+                  // Update the onLogin prop to match the expected function signature
+                  onLogin={(username: string, password: string) => login(username, password)} 
+                />
+              } 
+            />
+            <Route 
+              path="/register" 
+              element={
+                <RegisterForm 
+                  // Add the onRegister prop
+                  onRegister={(username: string, email: string, password: string) => 
+                    register(username, email, password)
+                  } 
+                />
+              } 
+            />
+            <Route path="*" element={<Navigate to="/login" />} />
+          </Routes>
+        </Suspense>
+      </Router>
     );
+  }
+
+  return (
+    <Router>
+      <Header onLogout={logout} />
+      <Suspense fallback={<LoadingSpinner />}>
+        <Routes>
+          {/* Replace AppContent with Dashboard */}
+          <Route path="/" element={<Dashboard />} />
+          <Route
+            path="/account-settings"
+            element={<AccountSettings onUpdatePassword={updatePassword} />}
+          />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </Suspense>
+    </Router>
+  );
 };
 
 export default App;
-

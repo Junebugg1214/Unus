@@ -34,7 +34,7 @@
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "types": ["node", "react", "react-dom", "jest", "@testing-library/jest-dom"]
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "postcss.config.ts"],
   "exclude": ["node_modules", "build", "dist", "public"]
 }
 

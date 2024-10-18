@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva } from "class-variance-authority";
-import { cn } from "../../lib/utils"; // Adjust this path if necessary
+import { cn } from "../../lib/utils"
 
 // Define the props interface for the Button component
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {

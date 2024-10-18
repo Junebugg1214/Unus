@@ -15,6 +15,8 @@ interface CustomApiInstance extends AxiosInstance {
   getTaskStatus: (taskId: string) => Promise<{ state: string; result?: string }>;
   login: (username: string, password: string) => Promise<{ user: User }>;
   register: (username: string, email: string, password: string) => Promise<{ user: User }>;
+  logout: () => Promise<void>;
+  updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
 
 const api = axios.create({
@@ -111,16 +113,22 @@ api.getTaskStatus = async (taskId: string) => {
   return response.data;
 };
 
-// Add login method to the API instance
 api.login = async (username: string, password: string) => {
   const { data } = await api.post<{ user: User }>('/login', { username, password });
   return data;
 };
 
-// Add register method to the API instance
 api.register = async (username: string, email: string, password: string) => {
   const { data } = await api.post<{ user: User }>('/register', { username, email, password });
   return data;
+};
+
+api.logout = async () => {
+  await api.post('/logout');
+};
+
+api.updatePassword = async (currentPassword: string, newPassword: string) => {
+  await api.post('/update-password', { currentPassword, newPassword });
 };
 
 export default api;

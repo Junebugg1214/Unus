@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '../components/ui/alert';
 import api from '../lib/api';
 
 interface LoginFormProps {
-  onLogin: (user: any) => void; // Replace `any` with the correct user type if available
+  onLogin: (username: string, password: string) => Promise<void>;
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
@@ -25,10 +25,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-
+  
     try {
       const response = await api.login(credentials.username, credentials.password);
-      onLogin(response.data.user);
+      await onLogin(credentials.username, credentials.password); // Fixed: Added second argument 'password'
       // Reset the form only after successful login
       setCredentials({ username: '', password: '' });
     } catch (err: unknown) {
@@ -94,5 +94,6 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
 };
 
 export default LoginForm;
+
 
 

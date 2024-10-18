@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card'; // Adjusted path to match common alias usage
 import { Button } from '@/components/ui/button'; // Adjusted path to match common alias usage
 import { Input } from '@/components/ui/input'; // Adjusted path to match common alias usage
-import { validateRepoUrl } from '@/utils/validation'; // Adjusted path to match common alias usage
+import { validateURL } from '@/utils/validation';
 
 // Define types for props
 interface HomePageProps {
@@ -18,7 +18,7 @@ const HomePage: React.FC<HomePageProps> = ({ user, onCloneRepo, showAlert }) => 
   const [githubUrl, setGithubUrl] = useState('');
 
   const handleClone = () => {
-    const urlError = validateRepoUrl(githubUrl);
+    const urlError = validateURL(githubUrl);
     if (urlError) {
       if (showAlert) {
         showAlert(urlError, 'destructive');
