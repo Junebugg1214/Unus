@@ -2,6 +2,9 @@ import path from 'path';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 import webpack, { Configuration } from 'webpack';
 
+// Add node types for better TypeScript support
+/// <reference types="node" />
+
 const config: Configuration = {
   entry: './src/index.tsx',
   output: {
@@ -27,11 +30,17 @@ const config: Configuration = {
     }),
   ],
   devServer: {
-    contentBase: path.join(__dirname, 'public'),
+    static: {
+      directory: path.join(__dirname, 'public'),
+    },
     compress: true,
     port: 9000,
   },
 };
 
 export default config;
+
+// Install the Node.js types to resolve missing declarations:
+// npm i --save-dev @types/node
+
 
