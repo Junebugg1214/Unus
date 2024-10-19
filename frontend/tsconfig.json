@@ -24,6 +24,7 @@
       "@/assets/*": ["assets/*"],
       "@/services/*": ["services/*"],
       "@/utils/*": ["utils/*"],
+      "@/hooks/*": ["hooks/*"],
       "@testing-library/jest-dom": [
         "../node_modules/@testing-library/jest-dom/extend-expect"
       ]
@@ -32,9 +33,18 @@
     "sourceMap": true,
     "experimentalDecorators": true,
     "typeRoots": ["./node_modules/@types", "./src/types"],
-    "types": ["node", "react", "react-dom", "jest", "@testing-library/jest-dom", "postcss-load-config"]
+    "types": ["node", "react", "react-dom", "jest", "@testing-library/jest-dom", "postcss-load-config"],
+    "declaration": true,
+    "declarationMap": true,
+    "importHelpers": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false
   },
   "include": ["src/**/*", "postcss.config.ts", "src/types/**/*"],
   "exclude": ["node_modules", "build", "dist", "public"]
 }
-
