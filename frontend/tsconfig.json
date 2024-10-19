@@ -32,9 +32,9 @@
     "sourceMap": true,
     "experimentalDecorators": true,
     "typeRoots": ["./node_modules/@types", "./src/types"],
-    "types": ["node", "react", "react-dom", "jest", "@testing-library/jest-dom"]
+    "types": ["node", "react", "react-dom", "jest", "@testing-library/jest-dom", "postcss-load-config"]
   },
-  "include": ["src/**/*", "postcss.config.ts"],
+  "include": ["src/**/*", "postcss.config.ts", "src/types/**/*"],
   "exclude": ["node_modules", "build", "dist", "public"]
 }
 

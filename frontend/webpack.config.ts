@@ -1,9 +1,13 @@
+/// <reference types="node" />
+
 import path from 'path';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
-import webpack, { Configuration } from 'webpack';
+import webpack, { Configuration as WebpackConfiguration } from 'webpack';
+import { Configuration as WebpackDevServerConfiguration } from 'webpack-dev-server';
 
-// Add node types for better TypeScript support
-/// <reference types="node" />
+interface Configuration extends WebpackConfiguration {
+  devServer?: WebpackDevServerConfiguration;
+}
 
 const config: Configuration = {
   entry: './src/index.tsx',
@@ -39,8 +43,5 @@ const config: Configuration = {
 };
 
 export default config;
-
-// Install the Node.js types to resolve missing declarations:
-// npm i --save-dev @types/node
 
 
