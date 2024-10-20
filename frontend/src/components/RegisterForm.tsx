@@ -6,13 +6,6 @@ import { Card, CardHeader, CardContent, CardFooter } from '../components/ui/card
 import { Alert, AlertDescription } from '../components/ui/alert';
 import api from '../lib/api';
 
-interface User {
-  id: string;
-  username: string;
-  email: string;
-  // Add other user properties as needed
-}
-
 interface RegisterFormProps {
   onRegister: (username: string, email: string, password: string) => Promise<void>;
 }
@@ -66,8 +59,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
     }
 
     try {
-      const response = await api.register(formData.username, formData.email, formData.password);
-      await onRegister(formData.username, formData.email, formData.password); // Fixed: Added second and third arguments 'email' and 'password'
+      await api.register(formData.username, formData.email, formData.password);
+      await onRegister(formData.username, formData.email, formData.password);
       setSuccess('Registration successful!');
       setFormData({ username: '', email: '', password: '', confirmPassword: '' });
     } catch (err: unknown) {
@@ -85,7 +78,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <h2 className="text-2xl font-bold">Register for {process.env.REACT_APP_NAME}</h2>
+        <h2 className="text-2xl font-bold">Register for {process.env['REACT_APP_NAME']}</h2>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">

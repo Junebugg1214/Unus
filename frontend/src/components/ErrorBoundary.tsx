@@ -16,7 +16,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+  static getDerivedStateFromError(_error: Error): ErrorBoundaryState {
     // Update state so the next render shows the fallback UI.
     return { hasError: true };
   }
@@ -24,7 +24,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Log the error to an error reporting service
     console.error('Uncaught error:', error, errorInfo);
-    if (process.env.REACT_APP_ENV === 'production' && typeof this.props.logError === 'function') {
+    if (process.env['REACT_APP_ENV'] === 'production' && typeof this.props.logError === 'function') {
       this.props.logError(error, errorInfo);
     }
   }

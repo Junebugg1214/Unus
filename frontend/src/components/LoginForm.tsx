@@ -27,8 +27,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
     setIsLoading(true);
   
     try {
-      const response = await api.login(credentials.username, credentials.password);
-      await onLogin(credentials.username, credentials.password); // Fixed: Added second argument 'password'
+      await api.login(credentials.username, credentials.password);
+      await onLogin(credentials.username, credentials.password);
       // Reset the form only after successful login
       setCredentials({ username: '', password: '' });
     } catch (err: unknown) {
@@ -46,7 +46,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <h2 className="text-2xl font-bold">Login to {process.env.REACT_APP_NAME}</h2>
+        <h2 className="text-2xl font-bold">Login to {process.env['REACT_APP_NAME']}</h2>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">

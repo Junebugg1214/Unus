@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import Cookies from 'js-cookie';
 
 // Define a custom User interface
@@ -20,8 +20,8 @@ interface CustomApiInstance extends AxiosInstance {
 }
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || '',
-  timeout: parseInt(process.env.REACT_APP_API_TIMEOUT || '5000', 10),
+  baseURL: process.env['REACT_APP_API_URL'] || '',
+  timeout: parseInt(process.env['REACT_APP_API_TIMEOUT'] || '5000', 10),
   headers: {
     'Content-Type': 'application/json',
   },
@@ -30,7 +30,7 @@ const api = axios.create({
 // Utility function for setting tokens in cookies
 const setAccessToken = (accessToken: string): void => {
   Cookies.set('accessToken', accessToken, {
-    expires: parseInt(process.env.REACT_APP_TOKEN_EXPIRY_DAYS || '1', 10),
+    expires: parseInt(process.env['REACT_APP_TOKEN_EXPIRY_DAYS'] || '1', 10),
     secure: true,
     sameSite: 'strict',
   });
@@ -38,10 +38,10 @@ const setAccessToken = (accessToken: string): void => {
 
 // Request interceptor to add token to request headers
 api.interceptors.request.use(
-  (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
+  (config: AxiosRequestConfig): AxiosRequestConfig => {
     const token = Cookies.get('accessToken');
-    if (token) {
-      config.headers.set('Authorization', `Bearer ${token}`);
+    if (token && config.headers) {
+      config.headers['Authorization'] = `Bearer ${token}`;
     }
     return config;
   },
@@ -71,7 +71,9 @@ api.interceptors.response.use(
 
       try {
         const newAccessToken = await refreshAccessToken();
-        originalRequest.headers.set('Authorization', `Bearer ${newAccessToken}`);
+        if (originalRequest.headers) {
+          originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+        }
         return api(originalRequest);
       } catch (refreshError) {
         // If refresh fails, log out the user
@@ -92,7 +94,7 @@ api.interceptors.response.use(
       alert('An unexpected error occurred. Please try again.');
     }
 
-    if (process.env.NODE_ENV !== 'production') {
+    if (process.env['NODE_ENV'] !== 'production') {
       console.error('API Error:', error.response?.data || error.message);
     }
 

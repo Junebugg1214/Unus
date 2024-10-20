@@ -1,8 +1,8 @@
 import process from 'process';
 
-const loadEnv = () => {
+const loadEnv = (): void => {
   // Set default to 'development' if NODE_ENV is not set
-  const nodeEnv = process.env.NODE_ENV || 'development';
+  const nodeEnv = process.env['NODE_ENV'] || 'development';
   console.log(`Environment: ${nodeEnv}`);
 
   // Verify essential environment variables
@@ -10,7 +10,7 @@ const loadEnv = () => {
     'REACT_APP_API_URL', 
     'REACT_APP_API_TIMEOUT', 
     'REACT_APP_TOKEN_EXPIRY_DAYS'
-  ];
+  ] as const;
 
   // Log an error if a required environment variable is missing
   requiredEnvVars.forEach((envVar) => {
