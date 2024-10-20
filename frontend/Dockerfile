@@ -5,13 +5,13 @@ FROM node:lts as build
 WORKDIR /app
 
 # Copy package.json and package-lock.json files to leverage Docker cache efficiently
-COPY frontend/package*.json ./
+COPY package*.json ./
 
 # Install dependencies
 RUN npm install
 
 # Copy the entire frontend source code to the container
-COPY frontend/ ./
+COPY ./ ./
 
 # Build the production-ready static files
 RUN npm run build
@@ -28,11 +28,9 @@ COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
 # Copy built frontend static files from the previous step
 COPY --from=build /app/build /usr/share/nginx/html
 
-# Copy other public files from the frontend
-COPY frontend/public /usr/share/nginx/html
-
 # Expose port 80 for Nginx
 EXPOSE 80
 
 # Start Nginx server
 CMD ["nginx", "-g", "daemon off;"]
+
