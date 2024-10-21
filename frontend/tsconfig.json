@@ -12,7 +12,6 @@
     "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
     "baseUrl": "./src",
@@ -51,12 +50,13 @@
     "noPropertyAccessFromIndexSignature": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false
+    // "isolatedModules": true // REMOVE this line or set it to false
   },
   "include": [
     "./",
     "src/**/*",
     "postcss.config.ts",
-    "tailwind.config.ts",       // <-- Added to ensure Tailwind config is included
+    "tailwind.config.ts",
     "src/types/**/*"
   ],
   "exclude": [
@@ -66,4 +66,5 @@
     "public"
   ]
 }
+
 

@@ -1,5 +1,5 @@
 # Use Node.js as the base image to build the frontend
-FROM node:lts as build
+FROM node:lts AS build
 
 # Set working directory for frontend
 WORKDIR /app
