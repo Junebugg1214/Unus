@@ -46,10 +46,16 @@
     "allowUnusedLabels": false
   },
   "include": [
+    "./",
     "src/**/*",
     "postcss.config.ts",
     "src/types/**/*",
-    "tailwind.config.ts"
+    "tailwind.config.js"
   ],
-  "exclude": ["node_modules", "build", "dist", "public"]
+  "exclude": [
+    "node_modules",
+    "build",
+    "dist",
+    "public"
+  ]
 }
