@@ -22,8 +22,17 @@
     "production": {
       "presets": [
         ["@babel/preset-env", { "targets": "> 0.25%, not dead" }]
+      ],
+      "plugins": [
+        ["transform-remove-console", { "exclude": ["error", "warn"] }]
       ]
     }
-  }
+  },
+  "ignore": [
+    "**/*.config.js",
+    "**/*.config.ts",
+    "node_modules"
+  ]
 }
+
 
