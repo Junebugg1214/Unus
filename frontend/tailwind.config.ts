@@ -67,8 +67,11 @@ const config = {
   plugins: [],
 };
 
-// Export the configuration
 export default config;
+
+// Add an empty export to make the file a module (needed for TypeScript with isolatedModules)
+export {};
+
 
 
 
