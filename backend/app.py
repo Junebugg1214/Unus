@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory, flash
+from flask import Flask, request, jsonify, send_from_directory, flash, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity
@@ -19,11 +19,15 @@ from config import config
 from utils import allowed_file, save_uploaded_file, install_requirements
 from error_handlers import register_error_handlers
 from flask_talisman import Talisman
-from celery_worker import make_celery
+from celery_worker import make_celery, run_inference  # Import run_inference
 from flask_cors import CORS
 
 # Load environment variables
 load_dotenv()
+
+# Set up logging globally
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Factory function to create Flask app and initialize components
 def create_app(config_name='development'):
@@ -46,14 +50,12 @@ def create_app(config_name='development'):
     csp = {
         'default-src': ["'self'"],
         'img-src': ["'self'", 'data:'],
-        'script-src': ["'self'", "'unsafe-inline'"],
-        'style-src': ["'self'", "'unsafe-inline'"]
+        'script-src': ["'self'", "'unsafe-inline'", "https://cdn.your-trusted-cdn.com"],
+        'style-src': ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        'font-src': ["'self'", "https://fonts.gstatic.com"],
+        'connect-src': ["'self'", "https://api.your-app-url.com"],
     }
     talisman.content_security_policy = csp
-    
-    # Set up logging
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__)
     
     return app, csrf
 
@@ -106,7 +108,7 @@ def register():
         return jsonify({'message': 'User registered successfully.'}), 201
     except Exception as e:
         db.session.rollback()
-        app.logger.error(f"Error during user registration: {str(e)}")
+        logger.error(f"Error during user registration: {str(e)}")
         return jsonify({'error': 'An error occurred during registration. Please try again.'}), 500
 
 @app.route('/api/login', methods=['POST'])
@@ -229,5 +231,14 @@ def clone_repository():
         logger.error(f"Unexpected error during repository cloning: {str(e)}")
         return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
 
+# Root route to serve the frontend's index.html file
+@app.route('/index')
+def index():
+    return render_template('index.html')
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False, ssl_context=('cert.pem', 'key.pem'))
+
+
+
+
