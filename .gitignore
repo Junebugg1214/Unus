@@ -133,15 +133,6 @@ share/python-wheels/
 .installed.cfg
 MANIFEST
 
-# Distribution / Packaging
-dist/
-build/
-lib/
-lib64/
-bin/
-include/
-local/
-
 # Database
 *.sqlite
 *.sqlite3
@@ -163,34 +154,16 @@ coverage/
 cypress/screenshots/
 cypress/videos/
 
-# Documentation
-docs/_build/
-site/
-/site
-.mkdocs/
-
-# Backup Files
-*.bak
-*.backup
-*~
-*.swp
-*.old
-*.orig
-*.tmp
-
-# Windows specific
-Thumbs.db
-Thumbs.db:encryptable
-ehthumbs.db
-ehthumbs_vista.db
-[Dd]esktop.ini
-$RECYCLE.BIN/
-*.cab
-*.msi
-*.msix
-*.msm
-*.msp
-*.lnk
+# DigitalOcean specific files and directories
+# Keep the .do directory and app.yaml for deployment
+!.do/
+!.do/app.yaml
+.do/deploy.log
+.do/deploy.json
+.do/*.backup
+.do/local/
+.digitalocean/
+.doctl/
 
 # Docker
 .docker/
@@ -208,15 +181,6 @@ kubeconfig
 *.password
 secrets/
 
-# Celery
-celerybeat-schedule
-celerybeat.pid
-celeryd.pid
-
-# Redis
-*.rdb
-dump.rdb
-
 # NOT Ignoring These Important Files
 !Dockerfile
 !docker-compose.yml
@@ -226,3 +190,5 @@ dump.rdb
 !README.md
 !LICENSE
 !.gitignore
+!nginx.conf
+!site.conf
