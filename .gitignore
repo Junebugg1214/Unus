@@ -41,10 +41,15 @@ coverage/
 
 # Virtual Environments
 venv/
+venv_new/    # Added specific virtual environment
 env/
 ENV/
 .env
 .venv
+Scripts/
+Lib/
+Include/
+pyvenv.cfg
 
 # Environment Variables
 .env
@@ -52,6 +57,8 @@ ENV/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.backup
+.env.*
 
 # IDE and Editor Files
 .vscode/
@@ -64,6 +71,12 @@ ENV/
 *.njsproj
 *.sln
 *.sw?
+.vs/
+*.sublime-workspace
+*.sublime-project
+.settings/
+.project
+.classpath
 
 # Logs and Debugging
 *.log
@@ -72,6 +85,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log
+debug.log
+debug/
 
 # OS Generated Files
 .DS_Store
@@ -82,65 +97,132 @@ yarn-error.log*
 Thumbs.db
 ehthumbs.db
 desktop.ini
+$RECYCLE.BIN/
+*.stackdump
 
 # Application Specific
 uploads/
 cloned_agents/
 tmp/
 temp/
+media/
+static/
+assets/generated/
+data/private/
+.cache-loader/
 
-# Package Files
+# Package Files and Dependencies
 *.tgz
 .npm
-
-# Distribution / Packaging
-dist/
+pip-log.txt
+pip-delete-this-directory.txt
+*.whl
+*.egg
+*.egg-info/
+.eggs/
+develop-eggs/
 downloads/
 eggs/
-.eggs/
-lib/
-lib64/
 parts/
 sdist/
 var/
 wheels/
-*.egg-info/
+share/python-wheels/
+*.manifest
+*.spec
 .installed.cfg
-*.egg
 MANIFEST
+
+# Distribution / Packaging
+dist/
+build/
+lib/
+lib64/
+bin/
+include/
+local/
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+*.sql
+*.dump
+
+# Testing and Coverage
+.tox/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+nosetests.xml
+coverage/
+.cypress/
+cypress/screenshots/
+cypress/videos/
+
+# Documentation
+docs/_build/
+site/
+/site
+.mkdocs/
 
 # Backup Files
 *.bak
+*.backup
+*~
+*.swp
+*.old
+*.orig
+*.tmp
 
 # Windows specific
-# Windows thumbnail cache files
 Thumbs.db
 Thumbs.db:encryptable
 ehthumbs.db
 ehthumbs_vista.db
-
-# Windows Dump file
-*.stackdump
-
-# Windows Folder config file
 [Dd]esktop.ini
-
-# Windows Recycle Bin used on file shares
 $RECYCLE.BIN/
-
-# Windows Installer files
 *.cab
 *.msi
 *.msix
 *.msm
 *.msp
-
-# Windows shortcuts
 *.lnk
 
-# NOTE: NOT Ignoring These Important Files
-# Dockerfile
-# docker-compose.yml
-# package.json
-# package-lock.json
-# requirements.txt
+# Docker
+.docker/
+*.env.docker
+docker-compose.override.yml
+
+# Kubernetes
+kubeconfig
+*.kubeconfig
+
+# Secrets
+*.key
+*.pem
+*.cert
+*.password
+secrets/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+celeryd.pid
+
+# Redis
+*.rdb
+dump.rdb
+
+# NOT Ignoring These Important Files
+!Dockerfile
+!docker-compose.yml
+!package.json
+!package-lock.json
+!requirements.txt
+!README.md
+!LICENSE
+!.gitignore
