@@ -1,30 +1,110 @@
 name: unus
-services:
-  - name: unus-web
-    dockerfile_path: Dockerfile
-    github:
-      branch: main
-      deploy_on_push: true
-      repo: Junebugg1214/Unus1
-    http_port: 8080
-    instance_size_slug: basic-xxs
-    instance_count: 1
-    envs:
-      - key: FLASK_ENV
-        value: production
-      - key: DATABASE_URL
-        value: ${db.DATABASE_URL}  # Will be automatically populated by DigitalOcean
-      - key: SECRET_KEY
-        type: SECRET
-        value: your-secret-key-here
-    health_check:
-      http_path: /health
-      period_seconds: 30
-      timeout_seconds: 4
-      failure_threshold: 2
-      success_threshold: 2
-
 databases:
   - engine: PG
     name: unus-db
     production: true
+  - engine: REDIS
+    name: unus-redis
+    production: true
+
+services:
+  - name: backend
+    dockerfile_path: backend/Dockerfile
+    source_dir: backend
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: Junebugg1214/Unus1
+    http_port: 5000
+    instance_size_slug: basic-xxs
+    instance_count: 1
+    routes:
+      - path: /api
+    envs:
+      - key: FLASK_APP
+        value: wsgi.py
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        type: SECRET
+        value: your-production-secret-key-here
+      - key: JWT_SECRET_KEY
+        type: SECRET
+        value: your-jwt-secret-key-here
+      - key: DATABASE_URL
+        value: ${unus-db.DATABASE_URL}
+      - key: CELERY_BROKER_URL
+        value: ${unus-redis.DATABASE_URL}
+      - key: CELERY_RESULT_BACKEND
+        value: ${unus-redis.DATABASE_URL}
+      - key: UPLOAD_FOLDER
+        value: /app/uploads
+      - key: AGENT_FOLDER
+        value: /app/cloned_agents
+      - key: WTF_CSRF_ENABLED
+        value: "True"
+      - key: MAX_CONTENT_LENGTH
+        value: "16777216"  # 16 MB in bytes
+    health_check:
+      http_path: /api/
+      period_seconds: 10
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 3
+
+  - name: frontend
+    dockerfile_path: frontend/Dockerfile
+    source_dir: frontend
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: Junebugg1214/Unus1
+    http_port: 80
+    instance_size_slug: basic-xxs
+    instance_count: 1
+    routes:
+      - path: /
+    envs:
+      - key: REACT_APP_API_URL
+        value: ${APP_URL}/api
+      - key: NODE_ENV
+        value: production
+
+  - name: celery-worker
+    dockerfile_path: backend/Dockerfile
+    source_dir: backend
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: Junebugg1214/Unus1
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    run_command: celery -A app.celery worker --loglevel=info
+    envs:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        type: SECRET
+        value: ${backend.SECRET_KEY}
+      - key: JWT_SECRET_KEY
+        type: SECRET
+        value: ${backend.JWT_SECRET_KEY}
+      - key: DATABASE_URL
+        value: ${unus-db.DATABASE_URL}
+      - key: CELERY_BROKER_URL
+        value: ${unus-redis.DATABASE_URL}
+      - key: CELERY_RESULT_BACKEND
+        value: ${unus-redis.DATABASE_URL}
+
+jobs:
+  - name: migrate
+    kind: PRE_DEPLOY
+    git:
+      repo_clone_url: https://github.com/Junebugg1214/Unus1.git
+      branch: main
+    source_dir: backend
+    environment_slug: python
+    envs:
+      - key: DATABASE_URL
+        value: ${unus-db.DATABASE_URL}
+    run_command: flask db upgrade
