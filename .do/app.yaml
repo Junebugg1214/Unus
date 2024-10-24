@@ -43,11 +43,11 @@ services:
      - key: SECRET_KEY
        scope: RUN_TIME
        type: SECRET
-       value: your-secret-key-here
+       value: ${_self.SECRET_KEY}
      - key: JWT_SECRET_KEY
        scope: RUN_TIME
        type: SECRET
-       value: your-jwt-secret-key-here
+       value: ${_self.JWT_SECRET_KEY}
 
  - name: frontend
    image:
@@ -72,6 +72,9 @@ services:
      - key: NODE_ENV
        scope: BUILD_TIME
        value: production
+   cors:
+     allow_origins:
+       - ${APP_URL}
 
  - name: celery-worker
    image:

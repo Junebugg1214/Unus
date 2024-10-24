@@ -1,36 +1,47 @@
-# Use Node.js as the base image to build the frontend
-FROM node:lts AS build
+# Build stage
+FROM node:16-alpine as builder
 
-# Set working directory for frontend
 WORKDIR /app
 
-# Copy package.json and package-lock.json files to leverage Docker cache efficiently
+# Copy package files
 COPY package*.json ./
-
-# Install dependencies
 RUN npm install
 
-# Copy the entire frontend source code to the container
-COPY ./ ./
+# Copy the rest of the application
+COPY . .
 
-# Build the production-ready static files
+# Build the application
 RUN npm run build
 
-# Use Nginx to serve the frontend
+# Production stage
 FROM nginx:alpine
 
-# Remove the default Nginx configuration
+# Remove default nginx static assets
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copy built assets from builder stage
+COPY --from=builder /app/build /usr/share/nginx/html
+
+# Remove default nginx configuration
 RUN rm /etc/nginx/conf.d/default.conf
+RUN rm /etc/nginx/nginx.conf
 
-# Copy a custom Nginx configuration file for routing and handling front-back communication
-COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
+# Copy nginx configurations
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
+COPY nginx/site.conf /etc/nginx/conf.d/default.conf
 
-# Copy built frontend static files from the previous step
-COPY --from=build /app/build /usr/share/nginx/html
+# Create required directories and set permissions
+RUN mkdir -p /var/cache/nginx /var/run \
+    && chmod -R 755 /var/cache/nginx \
+    && chown -R nginx:nginx /var/cache/nginx \
+    && chown -R nginx:nginx /var/run \
+    && chown -R nginx:nginx /usr/share/nginx/html
 
-# Expose port 80 for Nginx
+# Switch to non-root user
+USER nginx
+
 EXPOSE 80
 
-# Start Nginx server
+# Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
 
