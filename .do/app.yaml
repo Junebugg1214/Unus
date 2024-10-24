@@ -1,46 +1,8 @@
 name: unus
-databases:
-  - engine: PG
-    name: unus-db
-    production: true
-  - engine: REDIS
-    name: unus-redis
-    production: true
-
 services:
   - name: backend
     dockerfile_path: backend/Dockerfile
-    source_dir: backend
+    source_dir: .
     github:
       branch: main
-      deploy_on_push: true
-      repo: Junebugg1214/Unus  # Updated this line
-    http_port: 5000
-    # ... rest of backend config
-
-  - name: frontend
-    dockerfile_path: frontend/Dockerfile
-    source_dir: frontend
-    github:
-      branch: main
-      deploy_on_push: true
-      repo: Junebugg1214/Unus  # Updated this line
-    http_port: 80
-    # ... rest of frontend config
-
-  - name: celery-worker
-    dockerfile_path: backend/Dockerfile
-    source_dir: backend
-    github:
-      branch: main
-      deploy_on_push: true
-      repo: Junebugg1214/Unus  # Updated this line
-    # ... rest of celery config
-
-jobs:
-  - name: migrate
-    kind: PRE_DEPLOY
-    git:
-      repo_clone_url: https://github.com/Junebugg1214/Unus.git  # Updated this line
-      branch: main
-    # ... rest of jobs config
+      repo: Junebugg1214/Unus
