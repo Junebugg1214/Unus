@@ -1,32 +1,58 @@
-const webpack = require('webpack');
+const { ProvidePlugin } = require('webpack');
 const path = require('path');
+const ESLintPlugin = require('eslint-webpack-plugin');
 
 module.exports = {
   webpack: {
     configure: (webpackConfig) => {
-      webpackConfig.resolve.fallback = {
-        crypto: require.resolve('crypto-browserify'),
-        stream: require.resolve('stream-browserify'),
-        assert: require.resolve('assert'),
-        http: require.resolve('stream-http'),
-        https: require.resolve('https-browserify'),
-        os: require.resolve('os-browserify'),
-        url: require.resolve('url'),
-        buffer: require.resolve('buffer'),
+      const modifiedConfig = {
+        ...webpackConfig,
+        resolve: {
+          ...webpackConfig.resolve,
+          fallback: {
+            crypto: require.resolve('crypto-browserify'),
+            stream: require.resolve('stream-browserify'),
+            assert: require.resolve('assert'),
+            http: require.resolve('stream-http'),
+            https: require.resolve('https-browserify'),
+            os: require.resolve('os-browserify'),
+            url: require.resolve('url'),
+            buffer: require.resolve('buffer'),
+          },
+          alias: {
+            ...webpackConfig.resolve?.alias,
+            '@': path.resolve(__dirname, 'src'),
+          },
+        },
+        plugins: [
+          ...(webpackConfig.plugins || []),
+          new ProvidePlugin({
+            process: 'process/browser',
+            Buffer: ['buffer', 'Buffer'],
+          }),
+          new ESLintPlugin({
+            extensions: ['js', 'jsx', 'ts', 'tsx'],
+            failOnError: false,
+            emitWarning: true,
+            quiet: true,
+          }),
+        ],
       };
 
-      webpackConfig.plugins.push(
-        new webpack.ProvidePlugin({
-          process: 'process/browser',
-          Buffer: ['buffer', 'Buffer'],
-        })
-      );
-
-      webpackConfig.resolve.alias = {
-        '@': path.resolve(__dirname, 'src'),
-      };
-
-      return webpackConfig;
+      return modifiedConfig;
+    },
+  },
+  style: {
+    postcss: {
+      loaderOptions: {
+        postcssOptions: {
+          plugins: [
+            require('postcss-import'),
+            require('tailwindcss'),
+            require('autoprefixer'),
+          ],
+        },
+      },
     },
   },
   babel: {
@@ -43,6 +69,6 @@ module.exports = {
     ],
   },
   eslint: {
-    enable: false, // Disable ESLint during builds to speed up
+    enable: false, // Disable CRACO's ESLint since we're using eslint-webpack-plugin
   },
 };

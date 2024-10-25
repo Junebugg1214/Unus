@@ -55,8 +55,8 @@
   "include": [
     "./",
     "src/**/*",
-    "postcss.config.ts",
-    "tailwind.config.ts",
+    "postcss.config.js",
+    "tailwind.config.js",
     "src/types/**/*"
   ],
   "exclude": [

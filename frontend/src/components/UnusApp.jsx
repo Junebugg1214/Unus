@@ -1,23 +1,27 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
-import HomePage from '@/components/HomePage';
-import ManageReposPage from '@/components/ManageReposPage';
-import InferencePage from '@/components/InferencePage';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import api from '@/lib/api';
+
+const HomePage = lazy(() => import('@/components/HomePage'));
+const ManageReposPage = lazy(() => import('@/components/ManageReposPage'));
+const InferencePage = lazy(() => import('@/components/InferencePage'));
 
 const UnusApp = ({ user }) => {
   const [currentPage, setCurrentPage] = useState('home');
   const [clonedRepos, setClonedRepos] = useState([]);
-  const [alert, setAlert] = useState({ show: false, message: '', type: 'default' });
+  const [alert, setAlert] = useState({ show: false, message: '', type: 'default', timeoutId: null });
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const showAlert = useCallback((message, type = 'default') => {
-    setAlert({ show: true, message, type });
-    setTimeout(() => setAlert({ show: false, message: '', type: 'default' }), 3000);
-  }, []);
+  const showAlert = useCallback((message, type = 'default', duration = 3000) => {
+    if (alert.timeoutId) {
+      clearTimeout(alert.timeoutId);
+    }
+    const timeoutId = setTimeout(() => setAlert({ show: false, message: '', type: 'default', timeoutId: null }), duration);
+    setAlert({ show: true, message, type, timeoutId });
+  }, [alert]);
 
   const fetchClonedRepos = useCallback(async () => {
     try {
@@ -39,33 +43,31 @@ const UnusApp = ({ user }) => {
     }
   }, [user, fetchClonedRepos, navigate]);
 
-  const handleCloneRepo = useCallback(async (githubUrl) => {
+  const handleAsyncAction = useCallback(async (action, successMessage, failureMessage) => {
     try {
       setLoading(true);
-      await api.cloneRepository(githubUrl);
-      await fetchClonedRepos();
-      showAlert('Repository cloned successfully', 'default');
+      await action();
+      showAlert(successMessage, 'default');
     } catch (error) {
-      showAlert('Failed to clone repository', 'destructive');
+      showAlert(failureMessage, 'destructive');
     } finally {
       setLoading(false);
     }
-  }, [fetchClonedRepos, showAlert]);
+  }, [showAlert]);
 
-  const handleDeleteRepo = useCallback(async (repoName) => {
-    try {
-      setLoading(true);
-      await api.deleteRepo(repoName);
-      await fetchClonedRepos();
-      showAlert('Repository deleted successfully', 'default');
-    } catch (error) {
-      showAlert('Failed to delete repository', 'destructive');
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchClonedRepos, showAlert]);
+  const handleCloneRepo = (githubUrl) => handleAsyncAction(
+    () => api.cloneRepository(githubUrl),
+    'Repository cloned successfully',
+    'Failed to clone repository'
+  );
 
-  const renderContent = () => {
+  const handleDeleteRepo = (repoName) => handleAsyncAction(
+    () => api.deleteRepo(repoName),
+    'Repository deleted successfully',
+    'Failed to delete repository'
+  );
+
+  const renderedContent = useMemo(() => {
     if (loading) {
       return <div>Loading...</div>;
     }
@@ -80,7 +82,7 @@ const UnusApp = ({ user }) => {
       default:
         return null;
     }
-  };
+  }, [currentPage, user, loading, clonedRepos, handleCloneRepo, handleDeleteRepo, showAlert]);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -91,10 +93,13 @@ const UnusApp = ({ user }) => {
             <AlertDescription>{alert.message}</AlertDescription>
           </Alert>
         )}
-        {renderContent()}
+        <Suspense fallback={<div>Loading page...</div>}>
+          {renderedContent}
+        </Suspense>
       </main>
     </div>
   );
 };
 
 export default UnusApp;
+

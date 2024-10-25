@@ -1,6 +1,9 @@
 from app import create_app
 
-app = create_app()
+# Create the Flask application instance
+app = create_app(config_name='production')
 
+# Note: SSL termination is handled by Nginx, so there's no need for `ssl_context` here.
 if __name__ == '__main__':
-    app.run(ssl_context=(app.config['SSL_CERT_PATH'], app.config['SSL_KEY_PATH']))
+    app.run(host='0.0.0.0', port=5000)
+

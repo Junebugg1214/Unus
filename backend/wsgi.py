@@ -1,5 +1,5 @@
-from app import app
+from app import create_app
 
-if __name__ == "__main__":
-    app.run()
+# Creating the Flask application using production configuration
+app, _ = create_app(config_name='production')
 

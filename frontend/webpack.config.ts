@@ -1,47 +1,70 @@
-/// <reference types="node" />
-
 import path from 'path';
-import { CleanWebpackPlugin } from 'clean-webpack-plugin';
-import webpack, { Configuration as WebpackConfiguration } from 'webpack';
+import webpack from 'webpack';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
+import { Configuration as WebpackConfiguration } from 'webpack';
 import { Configuration as WebpackDevServerConfiguration } from 'webpack-dev-server';
 
 interface Configuration extends WebpackConfiguration {
   devServer?: WebpackDevServerConfiguration;
 }
 
+const mode: 'development' | 'production' | 'none' = (process.env['NODE_ENV'] as 'development' | 'production' | 'none') || 'development';
+const isProduction = mode === 'production';
+
 const config: Configuration = {
+  mode: mode,
   entry: './src/index.tsx',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'bundle.js',
+    filename: '[name].[contenthash].js',
+    clean: true,
   },
   resolve: {
-    extensions: ['.ts', '.tsx', '.js'],
+    extensions: ['.js', '.jsx', '.ts', '.tsx'],
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+    },
   },
   module: {
     rules: [
       {
-        test: /\.(ts|tsx)$/,
+        test: /\.tsx?$/,
         use: 'ts-loader',
         exclude: /node_modules/,
+      },
+      {
+        test: /\.css$/i,
+        use: ['style-loader', 'css-loader', 'postcss-loader'],
+      },
+      {
+        test: /\.(png|jpe?g|gif|svg|webp)$/i,
+        type: 'asset/resource',
       },
     ],
   },
   plugins: [
-    new CleanWebpackPlugin(),
+    new HtmlWebpackPlugin({
+      template: './public/index.html',
+      favicon: './public/favicon.ico',
+    }),
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+      'process.env.NODE_ENV': JSON.stringify(mode),
     }),
   ],
+  devtool: isProduction ? 'source-map' : 'inline-source-map',
   devServer: {
     static: {
       directory: path.join(__dirname, 'public'),
     },
     compress: true,
-    port: 9000,
+    port: 3000,
+    historyApiFallback: true,
+    hot: true,
   },
 };
 
 export default config;
+
+
 
 

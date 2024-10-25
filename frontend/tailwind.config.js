@@ -1,12 +1,15 @@
 /** @type {import('tailwindcss').Config} */
-const config = {
-  content: [
-    './pages/**/*.{js,jsx,ts,tsx}',
-    './components/**/*.{js,jsx,ts,tsx}',
-    './app/**/*.{js,jsx,ts,tsx}',
-    './src/**/*.{js,jsx,ts,tsx}',
-  ],
+module.exports = {
+  darkMode: ["class"],
+  content: ["./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
     extend: {
       colors: {
         border: "hsl(var(--border))",
@@ -50,12 +53,12 @@ const config = {
       },
       keyframes: {
         "accordion-down": {
-          from: { height: '0' },
+          from: { height: 0 },
           to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
           from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: '0' },
+          to: { height: 0 },
         },
       },
       animation: {
@@ -64,14 +67,8 @@ const config = {
       },
     },
   },
-  plugins: [],
+  plugins: [require("tailwindcss-animate")],
 };
-
-export default config;
-
-// Add an empty export to make the file a module (needed for TypeScript with isolatedModules)
-export {};
-
 
 
 

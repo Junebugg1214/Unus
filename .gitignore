@@ -44,7 +44,6 @@ venv/
 venv_new/    # Added specific virtual environment
 env/
 ENV/
-.env
 .venv
 Scripts/
 Lib/
@@ -154,21 +153,8 @@ coverage/
 cypress/screenshots/
 cypress/videos/
 
-# DigitalOcean specific files and directories
-# Keep the .do directory and app.yaml for deployment
-!.do/
-!.do/app.yaml
-.do/deploy.log
-.do/deploy.json
-.do/*.backup
-.do/local/
-.digitalocean/
-.doctl/
-
 # Docker
-.docker/
 *.env.docker
-docker-compose.override.yml
 
 # Kubernetes
 kubeconfig
@@ -191,4 +177,6 @@ secrets/
 !LICENSE
 !.gitignore
 !nginx.conf
-!site.conf
+
+
+
