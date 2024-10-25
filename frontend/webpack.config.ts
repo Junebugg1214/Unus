@@ -1,6 +1,7 @@
 import path from 'path';
 import webpack from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
+import ESLintPlugin from 'eslint-webpack-plugin';
 import { Configuration as WebpackConfiguration } from 'webpack';
 import { Configuration as WebpackDevServerConfiguration } from 'webpack-dev-server';
 
@@ -8,7 +9,8 @@ interface Configuration extends WebpackConfiguration {
   devServer?: WebpackDevServerConfiguration;
 }
 
-const mode: 'development' | 'production' | 'none' = (process.env['NODE_ENV'] as 'development' | 'production' | 'none') || 'development';
+const mode: 'development' | 'production' | 'none' =
+  (process.env['NODE_ENV'] as 'development' | 'production' | 'none') || 'development';
 const isProduction = mode === 'production';
 
 const config: Configuration = {
@@ -50,6 +52,11 @@ const config: Configuration = {
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify(mode),
     }),
+    new ESLintPlugin({
+      extensions: ['js', 'jsx', 'ts', 'tsx'],
+      context: path.resolve(__dirname, 'src'),
+      emitWarning: !isProduction,
+    }),
   ],
   devtool: isProduction ? 'source-map' : 'inline-source-map',
   devServer: {
@@ -64,6 +71,7 @@ const config: Configuration = {
 };
 
 export default config;
+
 
 
 
