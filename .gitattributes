@@ -1,0 +1,37 @@
+# Auto detect text files and perform LF normalization
+* text=auto eol=lf
+
+# Force specific line ending style for different file types
+*.{js,jsx,ts,tsx,json,css,scss,md,yml,yaml,html} text eol=lf
+*.{cmd,[cC][mM][dD]} text eol=crlf
+*.{bat,[bB][aA][tT]} text eol=crlf
+*.sh text eol=lf
+
+# Don't modify binary files
+*.{png,jpg,jpeg,gif,ico,webp,woff,woff2,ttf,eot} binary
+*.{mp4,webm,ogg} binary
+
+# Package files
+package.json text eol=lf
+package-lock.json text eol=lf
+yarn.lock text eol=lf
+pnpm-lock.yaml text eol=lf
+
+# Config files
+.env* text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+.prettierrc text eol=lf
+.eslintrc text eol=lf
+tsconfig.json text eol=lf
+
+# Docker
+Dockerfile text eol=lf
+docker-compose.yml text eol=lf
+*.dockerfile text eol=lf
+
+# Python
+*.py text eol=lf
+requirements.txt text eol=lf
+Pipfile text eol=lf
+Pipfile.lock text eol=lf
