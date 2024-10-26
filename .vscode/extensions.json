@@ -1,0 +1,15 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "vscode.typescript-language-features",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "ms-python.black-formatter",
+    "streetsidesoftware.code-spell-checker",
+    "gruntfuggly.todo-tree",
+    "christian-kohler.path-intellisense",
+    "eamodio.gitlens"
+  ]
+}

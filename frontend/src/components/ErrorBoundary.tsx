@@ -1,10 +1,9 @@
 import React, { ReactNode } from 'react';
-import { Button } from './ui/button';
+import { Button } from './ui/button';  // Assume this is a styled button component used across your app
 
 interface ErrorBoundaryProps {
   children: ReactNode;
-  // Only include logError in props if it's actually being used
-  // logError?: (error: Error, errorInfo: React.ErrorInfo) => void;
+  logError?: (error: Error, errorInfo: React.ErrorInfo) => void;  // Optional logging function
 }
 
 interface ErrorBoundaryState {
@@ -18,20 +17,22 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 
   static getDerivedStateFromError(): ErrorBoundaryState {
-    // Update state so the next render shows the fallback UI.
+    // Update state to show fallback UI on next render
     return { hasError: true };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Log the error to an error reporting service
+    // Log the error to an error reporting service or console
     console.error('Uncaught error:', error, errorInfo);
-    // if (process.env['REACT_APP_ENV'] === 'production' && typeof this.props.logError === 'function') {
-    //   this.props.logError(error, errorInfo);
-    // }
+
+    // Optionally log to a remote service if in production and logError function is provided
+    if (process.env['REACT_APP_ENV'] === 'production' && this.props.logError) {
+      this.props.logError(error, errorInfo);
+    }
   }
 
   handleRetry = () => {
-    // Reset the error boundary state to re-attempt rendering the children components
+    // Reset error state to attempt rendering the children components again
     this.setState({ hasError: false });
   };
 

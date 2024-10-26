@@ -1,0 +1,67 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Start Backend",
+        "type": "shell",
+        "command": "${workspaceFolder}\\backend\\venv\\Scripts\\python.exe",
+        "args": ["app.py"],
+        "options": {
+          "cwd": "${workspaceFolder}\\backend"
+        },
+        "group": "test",
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Start Frontend",
+        "type": "shell",
+        "command": "npm",
+        "args": ["start"],
+        "options": {
+          "cwd": "${workspaceFolder}\\frontend"
+        },
+        "group": "test",
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        },
+        "problemMatcher": []
+      },
+      {
+        "label": "Install Backend Dependencies",
+        "type": "shell",
+        "command": "${workspaceFolder}\\backend\\venv\\Scripts\\pip.exe",
+        "args": ["install", "-r", "requirements.txt"],
+        "options": {
+          "cwd": "${workspaceFolder}\\backend"
+        },
+        "group": "none",
+        "problemMatcher": []
+      },
+      {
+        "label": "Install Frontend Dependencies",
+        "type": "shell",
+        "command": "npm",
+        "args": ["install"],
+        "options": {
+          "cwd": "${workspaceFolder}\\frontend"
+        },
+        "group": "none",
+        "problemMatcher": []
+      },
+      {
+        "label": "Start Full Stack",
+        "dependsOn": ["Start Backend", "Start Frontend"],
+        "dependsOrder": "parallel",
+        "group": {
+          "kind": "test",
+          "isDefault": true
+        },
+        "problemMatcher": []
+      }
+    ]
+  }

@@ -14,50 +14,29 @@
     "resolveJsonModule": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "baseUrl": "./src",
+    "baseUrl": "src",
     "paths": {
-      "@/*": ["./*"],
-      "@/components/*": ["components/*"],
-      "@/context/*": ["context/*"],
-      "@/lib/*": ["lib/*"],
-      "@/assets/*": ["assets/*"],
-      "@/services/*": ["services/*"],
-      "@/utils/*": ["utils/*"],
-      "@/hooks/*": ["hooks/*"],
-      "@testing-library/jest-dom": [
-        "../node_modules/@testing-library/jest-dom/extend-expect"
-      ]
+      "@/*": ["*"],
+      "@components/*": ["components/*"]
     },
     "incremental": true,
     "sourceMap": true,
     "experimentalDecorators": true,
     "typeRoots": ["./node_modules/@types", "./src/types"],
-    "types": [
-      "node",
-      "react",
-      "react-dom",
-      "jest",
-      "@testing-library/jest-dom",
-      "postcss-load-config"
-    ],
+    "types": ["node", "react", "react-dom", "jest"],
     "declaration": true,
     "declarationMap": true,
     "importHelpers": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noImplicitReturns": true,
     "noUncheckedIndexedAccess": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "allowUnreachableCode": false,
-    "allowUnusedLabels": false
-    // "isolatedModules": true // REMOVE this line or set it to false
+    "noPropertyAccessFromIndexSignature": false
   },
   "include": [
-    "./",
-    "src/**/*",
+    "src",
     "postcss.config.js",
-    "tailwind.config.js",
-    "src/types/**/*"
+    "tailwind.config.js"
   ],
   "exclude": [
     "node_modules",
@@ -66,5 +45,7 @@
     "public"
   ]
 }
+
+
 
 

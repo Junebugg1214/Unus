@@ -4,14 +4,22 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import ErrorBoundary from './components/ErrorBoundary';
 import './styles/globals.css';
-import './env';
+import './env';  // Assuming this correctly sets up window.env
+
+// Create environment variable types
+declare global {
+  interface Window {
+    env: {
+      REACT_APP_ENV: string;
+      REACT_APP_API_URL: string;
+    };
+  }
+}
 
 // Log environment information only in non-production
-if (process.env['REACT_APP_ENV'] !== 'production') {
-  // eslint-disable-next-line no-console
-  console.log(`Running in ${process.env['REACT_APP_ENV']} environment`);
-  // eslint-disable-next-line no-console
-  console.log(`API URL: ${process.env['REACT_APP_API_URL']}`);
+if (window.env.REACT_APP_ENV !== 'production') {
+  console.log(`Running in ${window.env.REACT_APP_ENV} environment`);
+  console.log(`API URL: ${window.env.REACT_APP_API_URL}`);
 }
 
 const rootElement = document.getElementById('root');
@@ -28,6 +36,7 @@ root.render(
     </ErrorBoundary>
   </React.StrictMode>
 );
+
 
 
 

@@ -1,76 +1,170 @@
 version: '3.8'
 
+x-common-config: &common-config
+  restart: unless-stopped
+  networks:
+    - unus_network
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "10m"
+      max-file: "3"
+
 services:
   app:
-    image: mjsaintjour/unus:latest  # Use your Docker image here
+    <<: *common-config
+    image: mjsaintjour/unus:${APP_VERSION:-latest}
     container_name: unus_app
-    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+        PYTHON_ENV: production
     ports:
-      - "80:80"  # Nginx serves the frontend and backend on port 80
+      - "${PORT:-80}:80"
     depends_on:
-      - db
-      - redis
-    env_file:
-      - .env  # Use a shared .env file for configuration
-    volumes:
-      - ./uploads:/app/uploads  # Persist uploads if needed
-      - ./static:/app/static  # Persist static files if needed
-    networks:
-      - unus_network
-
-  db:
-    image: postgres:13
-    container_name: unus_db
-    restart: always
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    env_file: .env
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: Madou6282**
-      POSTGRES_DB: unus_ai_bridge
+      - VIRTUAL_HOST=${DOMAIN}
+      - LETSENCRYPT_HOST=${DOMAIN}
+      - LETSENCRYPT_EMAIL=${SSL_EMAIL}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - unus_network
+      - static_volume:/app/static
+      - media_volume:/app/uploads
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-
-  redis:
-    image: redis:6
-    container_name: unus_redis
-    restart: always
-    volumes:
-      - redis_data:/data
-    networks:
-      - unus_network
-
-  celery_worker:
-    image: mjsaintjour/unus:latest
-    container_name: unus_celery
-    restart: always
-    command: celery -A app.celery worker --loglevel=info
-    depends_on:
-      - app
-      - redis
-    env_file:
-      - .env
-    volumes:
-      - ./uploads:/app/uploads  # Match with application volume paths
-    networks:
-      - unus_network
-    healthcheck:
-      test: ["CMD", "celery", "-A", "app.celery", "status"]
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
+
+  db:
+    <<: *common-config
+    image: postgres:13-alpine
+    container_name: unus_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    <<: *common-config
+    image: redis:6-alpine
+    container_name: unus_redis
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  celery_worker:
+    <<: *common-config
+    image: mjsaintjour/unus:${APP_VERSION:-latest}
+    container_name: unus_celery
+    command: celery -A app.celery worker --loglevel=info --concurrency=2
+    depends_on:
+      app:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file: .env
+    volumes:
+      - media_volume:/app/uploads
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "celery", "-A", "app.celery", "inspect", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  nginx-proxy:
+    image: nginxproxy/nginx-proxy:alpine
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - nginx_certs:/etc/nginx/certs
+      - nginx_vhost:/etc/nginx/vhost.d
+      - nginx_html:/usr/share/nginx/html
+    networks:
+      - unus_network
+
+  letsencrypt:
+    image: nginxproxy/acme-companion
+    container_name: nginx-proxy-acme
+    volumes_from:
+      - nginx-proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - acme:/etc/acme.sh
+    environment:
+      - DEFAULT_EMAIL=${SSL_EMAIL}
+    depends_on:
+      - nginx-proxy
 
 volumes:
   postgres_data:
+    driver: local
   redis_data:
+    driver: local
+  static_volume:
+    driver: local
+  media_volume:
+    driver: local
+  nginx_certs:
+  nginx_vhost:
+  nginx_html:
+  acme:
 
 networks:
   unus_network:
+    driver: bridge
 
 
 

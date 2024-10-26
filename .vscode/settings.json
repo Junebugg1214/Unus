@@ -1,38 +1,86 @@
 {
-  "files.eol": "\n",
-  "files.insertFinalNewline": true,
-  "files.trimTrailingWhitespace": true,
-  "editor.formatOnSave": true,
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit"
-  },
-  "files.associations": {
-    "*.css": "css",
-    "*.scss": "scss",
-    "*.ts": "typescript",
-    "*.tsx": "typescriptreact",
-    "*.js": "javascript",
-    "*.jsx": "javascriptreact"
-  },
-  "[javascript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features",
-    "files.eol": "\n"
-  },
-  "[typescript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features",
-    "files.eol": "\n"
-  },
-  "[typescriptreact]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features",
-    "files.eol": "\n"
-  },
-  "[json]": {
-    "editor.defaultFormatter": "vscode.json-language-features",
-    "files.eol": "\n"
-  },
-  "[python]": {
+    // Editor General Settings
     "editor.formatOnSave": true,
-    "editor.defaultFormatter": "ms-python.python",
-    "files.eol": "\n"
+    "editor.defaultFormatter": null,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    },
+  
+    // File Settings
+    "files.eol": "\n",
+    "files.insertFinalNewline": true,
+    "files.trimTrailingWhitespace": true,
+    "files.associations": {
+      "*.css": "css",
+      "*.scss": "scss",
+      "*.ts": "typescript",
+      "*.tsx": "typescriptreact",
+      "*.js": "javascript",
+      "*.jsx": "javascriptreact"
+    },
+  
+    // JavaScript/TypeScript Settings
+    "[javascript]": {
+      "editor.defaultFormatter": "vscode.typescript-language-features",
+      "editor.tabSize": 2,
+      "files.eol": "\n"
+    },
+    "[typescript]": {
+      "editor.defaultFormatter": "vscode.typescript-language-features",
+      "editor.tabSize": 2,
+      "files.eol": "\n"
+    },
+    "[javascriptreact]": {
+      "editor.defaultFormatter": "vscode.typescript-language-features",
+      "editor.tabSize": 2,
+      "files.eol": "\n"
+    },
+    "[typescriptreact]": {
+      "editor.defaultFormatter": "vscode.typescript-language-features",
+      "editor.tabSize": 2,
+      "files.eol": "\n"
+    },
+  
+    // JSON Settings
+    "[json]": {
+      "editor.defaultFormatter": "vscode.json-language-features",
+      "editor.tabSize": 2,
+      "files.eol": "\n"
+    },
+    "[jsonc]": {
+      "editor.defaultFormatter": "vscode.json-language-features",
+      "editor.tabSize": 2,
+      "files.eol": "\n"
+    },
+  
+    // Python Settings
+    "[python]": {
+      "editor.formatOnSave": true,
+      "editor.defaultFormatter": "ms-python.python",
+      "editor.rulers": [88],
+      "files.eol": "\n"
+    },
+    "python.analysis.extraPaths": ["./backend"],
+    "python.defaultInterpreterPath": "${workspaceFolder}\\backend\\venv\\Scripts\\python.exe",
+  
+    // Search Settings
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/venv": true,
+      "**/__pycache__": true,
+      "**/.git": true,
+      "**/build": true,
+      "**/dist": true
+    },
+  
+    // Tailwind CSS Settings
+    "css.validate": false,
+    "tailwindCSS.experimental.classRegex": [
+      ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+      ["cn\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"]
+    ],
+    "tailwindCSS.includeLanguages": {
+      "typescript": "javascript",
+      "typescriptreact": "javascript"
+    }
   }
-}

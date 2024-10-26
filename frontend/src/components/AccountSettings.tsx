@@ -16,6 +16,13 @@ interface AccountSettingsProps {
   onUpdatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
 
+const MESSAGES = {
+  passwordsMismatch: "New passwords don't match",
+  passwordTooShort: "New password must be at least 8 characters long",
+  passwordSuccess: "Password updated successfully",
+  passwordFailure: "Failed to update password. Please try again.",
+};
+
 const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdatePassword }) => {
   const [formData, setFormData] = useState({
     currentPassword: '',
@@ -32,11 +39,11 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdatePasswor
 
   const validateForm = () => {
     if (formData.newPassword !== formData.confirmNewPassword) {
-      setMessage({ text: "New passwords don't match", type: 'error' });
+      setMessage({ text: MESSAGES.passwordsMismatch, type: 'error' });
       return false;
     }
     if (formData.newPassword.length < 8) {
-      setMessage({ text: "New password must be at least 8 characters long", type: 'error' });
+      setMessage({ text: MESSAGES.passwordTooShort, type: 'error' });
       return false;
     }
     return true;
@@ -51,14 +58,11 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdatePasswor
     setIsLoading(true);
     try {
       await onUpdatePassword(formData.currentPassword, formData.newPassword);
-      setMessage({ text: 'Password updated successfully', type: 'success' });
+      setMessage({ text: MESSAGES.passwordSuccess, type: 'success' });
       setFormData({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
     } catch (error) {
-      if (error instanceof Error) {
-        setMessage({ text: error.message || 'Failed to update password. Please try again.', type: 'error' });
-      } else {
-        setMessage({ text: 'Failed to update password. Please try again.', type: 'error' });
-      }
+      const errorMessage = error instanceof Error ? error.message : MESSAGES.passwordFailure;
+      setMessage({ text: errorMessage, type: 'error' });
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +76,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdatePasswor
       <CardContent>
         <div className="mb-4">
           <div className="space-y-1">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">Email Address:</Label>
             <p className="text-sm text-gray-600">{user?.email || 'N/A'}</p>
           </div>
         </div>
@@ -110,7 +114,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdatePasswor
               required
             />
           </div>
-          <Button type="submit" disabled={isLoading} className="w-full">
+          <Button type="submit" disabled={isLoading} className={`w-full ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}>
             {isLoading ? 'Updating...' : 'Update Password'}
           </Button>
         </form>
@@ -127,3 +131,10 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ user, onUpdatePasswor
 };
 
 export default AccountSettings;
+
+
+
+
+
+
+

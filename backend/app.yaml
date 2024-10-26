@@ -1,0 +1,59 @@
+name: unus
+region: nyc
+services:
+  - name: unus-app
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    dockerfile_path: Dockerfile
+    source_dir: .
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: your-username/unus
+    health_check:
+      http_path: /health
+      initial_delay_seconds: 30
+      period_seconds: 60
+    routes:
+      - path: /
+    envs:
+      - key: DOMAIN
+        value: ${_self.PUBLIC_URL}
+      - key: DATABASE_URL
+        value: ${unus-db.DATABASE_URL}
+      - key: REDIS_URL
+        value: ${unus-redis.REDIS_URL}
+      # Add other environment variables from .env file
+
+databases:
+  - engine: PG
+    name: unus-db
+    version: "13"
+    production: true
+    cluster_name: unus-cluster
+    db_name: ${POSTGRES_DB}
+    db_user: ${POSTGRES_USER}
+
+  - engine: REDIS
+    name: unus-redis
+    version: "6"
+    production: true
+
+jobs:
+  - name: migrate
+    kind: PRE_DEPLOY
+    github:
+      repo: your-username/unus
+      branch: main
+      deploy_on_push: true
+    source_dir: /
+    environment_slug: python
+    envs:
+      - key: DATABASE_URL
+        value: ${unus-db.DATABASE_URL}
+    run_command: python manage.py db upgrade
+
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED
+  - rule: DEPLOYMENT_LIVE
