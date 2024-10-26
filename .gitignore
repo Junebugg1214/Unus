@@ -60,7 +60,6 @@ pyvenv.cfg
 .env.*
 
 # IDE and Editor Files
-.vscode/
 .idea/
 *.swp
 *.swo
@@ -180,3 +179,16 @@ secrets/
 
 
 
+
+# VSCode files
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# Keep ignoring VSCode personal files
+.vscode/sftp.json
+.vscode/*.code-workspace
+.vscode/shelf/
+.vscode/local.settings.json
