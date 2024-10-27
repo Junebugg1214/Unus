@@ -88,13 +88,6 @@ ENV PORT=8080
 EXPOSE ${PORT}
 
 # Start Gunicorn
-CMD gunicorn \
-    --workers=3 \
-    --worker-class=sync \
-    --worker-tmp-dir=/dev/shm \
-    --bind=0.0.0.0:${PORT} \
-    --log-level=info \
-    --access-logfile=- \
-    --error-logfile=- \
-    wsgi:app
+CMD ["gunicorn", "--workers=3", "--worker-class=sync", "--worker-tmp-dir=/dev/shm", "--bind=0.0.0.0:${PORT}", "--log-level=info", "--access-logfile=-", "--error-logfile=-", "wsgi:app"]
+
 
