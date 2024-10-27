@@ -3,12 +3,13 @@
 .gitignore
 .gitattributes
 
-# Environment files
+# Environment files - but keep example.env
 .env
 *.env
 .env.*
+!example.env
 
-# Python
+# Python - exclude caches and compiled files
 **/__pycache__
 **/*.pyc
 **/*.pyo
@@ -27,7 +28,7 @@ coverage.xml
 *.cover
 *.log
 
-# Node
+# Node - exclude dev dependencies but keep production files
 **/node_modules
 **/npm-debug.log
 **/yarn-debug.log
@@ -35,16 +36,15 @@ coverage.xml
 **/.pnp
 **/.pnp.js
 **/coverage
-**/.next
+**/.next/cache
 **/out
-**/build
 **/.DS_Store
 **/.env.local
 **/.env.development.local
 **/.env.test.local
 **/.env.production.local
 
-# IDE
+# IDE and editor files
 .idea/
 .vscode/
 *.swp
@@ -52,23 +52,64 @@ coverage.xml
 *.swn
 *.bak
 
-# Docker
-Dockerfile*
-docker-compose*
+# Docker - but keep production Dockerfile
+Dockerfile.dev
+docker-compose.dev.yml
+docker-compose.override.yml
 .dockerignore
+!Dockerfile
+!docker-compose.yml
 
-# Testing
+# Testing and development files
 **/coverage
 **/htmlcov
 **/.pytest_cache
 **/.hypothesis
+**/*.test.js
+**/*.spec.js
+**/*.test.ts
+**/*.spec.ts
+**/test/
+**/tests/
+**/__tests__/
 
-# Database
+# Database files - but keep migrations
 *.sqlite
 *.db
+!**/migrations/
 
-# Uploads and temporary files
+# Windows-specific files
+**/win32*
+**/pywin*
+**/*.pyd
+**/win32com*
+**/win32comext*
+
+# Temporary development directories
 uploads/
-cloned_agents/
 tmp/
 temp/
+
+# Keep essential production files
+!requirements.txt
+!package.json
+!package-lock.json
+!yarn.lock
+!README.md
+!LICENSE
+!app.yaml
+!nginx.conf
+!wsgi.py
+!gunicorn.conf.py
+
+# Keep static assets and public files
+!**/public/
+!**/static/
+!**/assets/
+!**/dist/
+!**/build/
+
+# Keep application source code
+!backend/
+!frontend/src/
+!frontend/public/

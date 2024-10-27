@@ -1,0 +1,100 @@
+name: unus
+region: nyc
+
+services:
+  - name: unus-app
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    dockerfile_path: Dockerfile
+    source_dir: .
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: mjsaintjour/unus
+    health_check:
+      http_path: /health
+      initial_delay_seconds: 30
+      period_seconds: 60
+      success_threshold: 1
+      failure_threshold: 3
+      timeout_seconds: 5
+    http_port: 8080
+    routes:
+      - path: /
+    envs:
+      - key: FLASK_ENV
+        value: production
+      - key: CONFIG_NAME
+        value: production
+      - key: DOMAIN
+        value: ${_self.PUBLIC_URL}
+      - key: DATABASE_URL
+        value: ${unus-db.DATABASE_URL}
+      - key: REDIS_URL
+        value: ${unus-redis.REDIS_URL}
+      - key: CELERY_BROKER_URL
+        value: ${unus-redis.REDIS_URL}
+      - key: CELERY_RESULT_BACKEND
+        value: ${unus-redis.REDIS_URL}
+      - key: SECRET_KEY
+        type: SECRET
+        value: ${SECRET_KEY}
+
+databases:
+  - engine: PG
+    name: unus-db
+    version: "13"
+    production: true
+    cluster_name: unus-cluster
+    db_name: ${POSTGRES_DB}
+    db_user: ${POSTGRES_USER}
+    db_password: ${POSTGRES_PASSWORD}
+    size: db-s-dev-database
+
+  - engine: REDIS
+    name: unus-redis
+    version: "6"
+    production: true
+    size: db-s-dev-database
+
+workers:
+  - name: celery-worker
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    dockerfile_path: Dockerfile
+    source_dir: .
+    github:
+      branch: main
+      repo: mjsaintjour/unus
+    command: celery -A app.celery worker --loglevel=info
+    envs:
+      - key: FLASK_ENV
+        value: production
+      - key: DATABASE_URL
+        value: ${unus-db.DATABASE_URL}
+      - key: CELERY_BROKER_URL
+        value: ${unus-redis.REDIS_URL}
+      - key: CELERY_RESULT_BACKEND
+        value: ${unus-redis.REDIS_URL}
+
+jobs:
+  - name: migrate
+    kind: PRE_DEPLOY
+    github:
+      repo: mjsaintjour/unus
+      branch: main
+    source_dir: /
+    environment_slug: python
+    envs:
+      - key: DATABASE_URL
+        value: ${unus-db.DATABASE_URL}
+      - key: FLASK_APP
+        value: wsgi.py
+    run_command: flask db upgrade
+
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED
+  - rule: DEPLOYMENT_LIVE
+  - rule: USAGE_LIMIT_APPROACHING
+  - rule: INSTANCE_DOWN
