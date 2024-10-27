@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
-import UserDashboard from './components/UserDashboard';  // Corrected import
-import NotificationsPanel from './components/NotificationsPanel';  // Corrected import
+import UnusApp from './components/UnusApp';
+import { Button } from '@/components/ui/button';
 
 // Define the User interface
 interface User {
@@ -9,42 +9,35 @@ interface User {
   email: string;
 }
 
-// Properly type `user` to ensure TypeScript can infer its properties
-const user: User | null = {
-  username: 'JohnDoe',
-  email: 'john.doe@example.com',
-};
+const App: React.FC = () => {
+  // Add user state
+  const [user, setUser] = useState<User | null>({
+    username: 'JohnDoe',
+    email: 'john.doe@example.com'
+  });
 
-function App() {
+  const handleError = (error: Error, errorInfo: React.ErrorInfo) => {
+    console.error('Error caught:', error, errorInfo);
+  };
+
   return (
-    <div>
-      {/* Error boundary for the Account Settings area */}
-      <ErrorBoundary>
-        {user ? (
-          <div>
-            <h1>Account Settings for {user.username}</h1>
-            {/* Add your AccountSettings component here */}
-          </div>
-        ) : (
-          <div>User not found. Please login.</div>
-        )}
+    <div className="min-h-screen bg-background">
+      {/* Main App Error Boundary */}
+      <ErrorBoundary logError={handleError}>
+        <UnusApp user={user} />
       </ErrorBoundary>
 
-      {/* Error boundary for the User Dashboard */}
-      <ErrorBoundary>
-        <UserDashboard />
-      </ErrorBoundary>
-
-      {/* Error boundary for the Notifications Panel */}
-      <ErrorBoundary>
-        <NotificationsPanel />
+      {/* Optional: Additional Error Boundaries for specific features */}
+      <ErrorBoundary logError={handleError}>
+        <div className="container mx-auto px-4 py-8">
+          {/* Your additional components here */}
+        </div>
       </ErrorBoundary>
     </div>
   );
-}
+};
 
 export default App;
-
 
 
 
