@@ -1,7 +1,1 @@
-declare module 'postcss-load-config' {
-  export interface Config {
-    plugins: {
-      [key: string]: any;
-    };
-  }
-}
+declare module 'postcss-load-config' {  export interface Config {    plugins: {      [key: string]: any;    };  }}

@@ -1,10 +1,1 @@
-const webpack = require('webpack');
-
-module.exports = function override(config) {
-  config.resolve.fallback = {
-    ...config.resolve.fallback,
-    process: require.resolve('process/browser'),
-  };
-
-  return config;
-};
+const webpack = require('webpack');const path = require('path');module.exports = function override(config) {  // Add fallback for process in browser environments  config.resolve.fallback = {    ...config.resolve.fallback,    process: require.resolve('process/browser'),  };  // Add alias for '@' to point to the 'src' directory  config.resolve.alias = {    ...config.resolve.alias,    '@': path.resolve(__dirname, 'src'),  };  return config;};
