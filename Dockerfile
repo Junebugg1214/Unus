@@ -1,8 +1,8 @@
 # Base image to build the backend and frontend
-FROM python:3.9-slim-buster AS base
+FROM python:3.9-slim-bullseye AS base
 
 # Install system dependencies
-RUN apt-get update && \
+RUN apt-get update -y && \
     apt-get install -y --no-install-recommends \
     build-essential \
     curl \
@@ -44,10 +44,10 @@ COPY frontend/ ./
 RUN npm run build
 
 # Production stage - combine backend and frontend with Gunicorn
-FROM python:3.9-slim-buster AS production
+FROM python:3.9-slim-bullseye AS production
 
 # Install runtime dependencies
-RUN apt-get update && \
+RUN apt-get update -y && \
     apt-get install -y --no-install-recommends \
     git \
     && rm -rf /var/lib/apt/lists/*
