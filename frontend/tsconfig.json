@@ -36,7 +36,8 @@
   "include": [
     "src",
     "postcss.config.js",
-    "tailwind.config.js"
+    "tailwind.config.js",
+    "global.d.ts"  // Added global type declarations
   ],
   "exclude": [
     "node_modules",
@@ -45,6 +46,7 @@
     "public"
   ]
 }
+
 
 
 
