@@ -1,16 +1,12 @@
-from flask import Flask, request, jsonify, send_from_directory, flash, render_template
+from flask import Flask, request, jsonify, send_from_directory, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity
 from flask_wtf.csrf import CSRFProtect
+from prometheus_flask_exporter import PrometheusMetrics
 from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
-from celery import uuid
 from dotenv import load_dotenv
 import git
-import shutil
-import subprocess
-import docker
 import os
 import re
 import logging
@@ -19,8 +15,10 @@ from config import config
 from utils import allowed_file, save_uploaded_file, install_requirements
 from error_handlers import register_error_handlers
 from flask_talisman import Talisman
-from celery_worker import make_celery, run_inference  # Import run_inference
+from celery_worker import make_celery, run_inference
 from flask_cors import CORS
+import uuid
+
 
 # Load environment variables
 load_dotenv()
@@ -30,11 +28,11 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Factory function to create Flask app and initialize components
-def create_app(config_name='development'):
-    # Initialize Flask app, including static folder to serve React frontend
-    app = Flask(__name__, static_folder='../frontend/build')
+def create_app(config_name='production'):
+    # Initialize Flask app, including static folder to serve Vite frontend
+    app = Flask(__name__, static_folder='../frontend/dist', template_folder='../frontend/dist')
     app.config.from_object(config[config_name])
-    
+
     # Initialize extensions
     jwt = JWTManager(app)
     csrf = CSRFProtect(app)
@@ -42,10 +40,11 @@ def create_app(config_name='development'):
     migrate = Migrate(app, db)
     talisman = Talisman(app)
     CORS(app)  # Enable CORS for all routes
-    
+    metrics = PrometheusMetrics(app)  # Initialize Prometheus metrics
+
     # Register error handlers
     register_error_handlers(app)
-    
+
     # Security configuration with Talisman
     csp = {
         'default-src': ["'self'"],
@@ -56,34 +55,34 @@ def create_app(config_name='development'):
         'connect-src': ["'self'", "https://api.your-app-url.com"],
     }
     talisman.content_security_policy = csp
-    
+
     return app, csrf
 
 # Create the Flask app and Celery instance
-app, csrf = create_app(config_name='development')
+app, csrf = create_app()
 celery = make_celery(app)
 
-# Serve the React frontend from the build folder
+# Serve the Vite frontend from the dist folder
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve_frontend(path):
-    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+    if path and os.path.exists(os.path.join(app.static_folder, path)):
         return send_from_directory(app.static_folder, path)
-    else:
-        return send_from_directory(app.static_folder, 'index.html')
+    return send_from_directory(app.static_folder, 'index.html')
 
-# Add a root route to respond to basic requests to '/'
+# Root route to respond to basic requests to '/'
 @app.route('/api/')
 def home():
     return jsonify({"message": "Backend server is running."})
 
+# User registration route
 @app.route('/api/register', methods=['POST'])
 def register():
     data = request.json
     username = data.get('username')
     email = data.get('email')
     password = data.get('password')
-    
+
     # Input validation
     if not username or len(username) < 3 or len(username) > 25:
         return jsonify({'error': 'Invalid username. Must be between 3 and 25 characters.'}), 400
@@ -91,17 +90,17 @@ def register():
         return jsonify({'error': 'Invalid email address.'}), 400
     if not password or len(password) < 8:
         return jsonify({'error': 'Invalid password. Must be at least 8 characters.'}), 400
-    
+
     # Check if user already exists
     if User.query.filter_by(username=username).first():
         return jsonify({'error': 'Username already exists.'}), 400
     if User.query.filter_by(email=email).first():
         return jsonify({'error': 'Email already registered.'}), 400
-    
+
     # Create new user
     new_user = User(username=username, email=email)
     new_user.set_password(password)
-    
+
     try:
         db.session.add(new_user)
         db.session.commit()
@@ -111,23 +110,25 @@ def register():
         logger.error(f"Error during user registration: {str(e)}")
         return jsonify({'error': 'An error occurred during registration. Please try again.'}), 500
 
+# User login route
 @app.route('/api/login', methods=['POST'])
 def login():
     username = request.json.get('username', None)
     password = request.json.get('password', None)
-    
+
     if not username or not password:
         return jsonify({"error": "Username and password are required."}), 400
-    
+
     user = User.query.filter_by(username=username).first()
-    
+
     if user and user.check_password(password):
         access_token = create_access_token(identity=user.id)
         refresh_token = create_refresh_token(identity=user.id)
         return jsonify(access_token=access_token, refresh_token=refresh_token, user=user.to_dict()), 200
-    
+
     return jsonify({"error": "Invalid username or password."}), 401
 
+# Protected route
 @app.route('/api/protected', methods=['GET'])
 @jwt_required()
 def protected():
@@ -135,6 +136,7 @@ def protected():
     user = User.query.get(current_user_id)
     return jsonify(logged_in_as=user.to_dict()), 200
 
+# Token refresh route
 @app.route('/api/refresh', methods=['POST'])
 @jwt_required(refresh=True)
 def refresh():
@@ -142,11 +144,13 @@ def refresh():
     new_access_token = create_access_token(identity=current_user)
     return jsonify(access_token=new_access_token), 200
 
+# User logout route
 @app.route('/api/logout', methods=['POST'])
 @jwt_required()
 def logout():
     return jsonify({"msg": "Successfully logged out"}), 200
 
+# Run inference route
 @app.route('/api/run_inference', methods=['POST'])
 @jwt_required()
 @csrf.exempt
@@ -180,6 +184,7 @@ def run_inference_api():
         logger.error(f"Failed to start inference: {str(e)}")
         return jsonify({'error': 'Failed to start inference'}), 500
 
+# Get Celery task status
 @app.route('/api/task_status/<task_id>', methods=['GET'])
 @jwt_required()
 def get_task_status(task_id):
@@ -196,6 +201,7 @@ def get_task_status(task_id):
         response = {'state': task.state, 'status': 'Unknown status'}
     return jsonify(response)
 
+# GitHub repository cloning route
 @app.route('/api/clone', methods=['POST'])
 @jwt_required()
 def clone_repository():
@@ -214,7 +220,7 @@ def clone_repository():
 
     try:
         git.Repo.clone_from(repo_url, repo_path)
-        
+
         requirements_file = os.path.join(repo_path, 'requirements.txt')
         if os.path.exists(requirements_file):
             install_requirements(repo_path)
@@ -237,7 +243,10 @@ def index():
     return render_template('index.html')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=False, ssl_context=('cert.pem', 'key.pem'))
+    app.run(host='0.0.0.0', port=5000, debug=False)
+
+
+
 
 
 

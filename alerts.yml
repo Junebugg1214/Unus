@@ -1,0 +1,18 @@
+groups:
+  - name: flask_app_alerts
+    rules:
+      - alert: HighResponseTime
+        expr: http_response_time_seconds > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          description: "High response time detected on endpoint {{ $labels.endpoint }}"
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          description: "High error rate detected on endpoint {{ $labels.endpoint }}"

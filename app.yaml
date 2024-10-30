@@ -24,17 +24,9 @@ services:
     envs:
       - key: FLASK_ENV
         value: production
-      - key: CONFIG_NAME
-        value: production
-      - key: DOMAIN
-        value: ${_self.PUBLIC_URL}
       - key: DATABASE_URL
         value: ${unus-db.DATABASE_URL}
       - key: REDIS_URL
-        value: ${unus-redis.REDIS_URL}
-      - key: CELERY_BROKER_URL
-        value: ${unus-redis.REDIS_URL}
-      - key: CELERY_RESULT_BACKEND
         value: ${unus-redis.REDIS_URL}
       - key: SECRET_KEY
         type: SECRET
@@ -68,8 +60,6 @@ workers:
       repo: mjsaintjour/unus
     command: celery -A app.celery worker --loglevel=info
     envs:
-      - key: FLASK_ENV
-        value: production
       - key: DATABASE_URL
         value: ${unus-db.DATABASE_URL}
       - key: CELERY_BROKER_URL
@@ -77,24 +67,11 @@ workers:
       - key: CELERY_RESULT_BACKEND
         value: ${unus-redis.REDIS_URL}
 
-jobs:
-  - name: migrate
-    kind: PRE_DEPLOY
-    github:
-      repo: mjsaintjour/unus
-      branch: main
-    source_dir: /
-    environment_slug: python
-    envs:
-      - key: DATABASE_URL
-        value: ${unus-db.DATABASE_URL}
-      - key: FLASK_APP
-        value: wsgi.py
-    run_command: flask db upgrade
+# Prometheus and Alertmanager Configuration
+monitoring:
+  prometheus:
+    enabled: true
+    alertmanager:
+      enabled: true
+      config_path: ./alertmanager.yml
 
-alerts:
-  - rule: DEPLOYMENT_FAILED
-  - rule: DOMAIN_FAILED
-  - rule: DEPLOYMENT_LIVE
-  - rule: USAGE_LIMIT_APPROACHING
-  - rule: INSTANCE_DOWN

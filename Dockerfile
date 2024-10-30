@@ -18,7 +18,8 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy Python requirements first for better caching
 COPY backend/requirements.txt /app/
-RUN pip install --no-cache-dir -r requirements.txt && \
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
     pip uninstall -y pywin32 || true
 
 # Copy the backend code
@@ -75,7 +76,7 @@ ENV FLASK_ENV=production \
     PYTHONDONTWRITEBYTECODE=1
 
 # Install Gunicorn
-RUN pip install gunicorn
+RUN pip install --no-cache-dir gunicorn
 
 # Set permissions for app directories
 RUN chmod -R 755 /app && \
@@ -87,7 +88,11 @@ ENV PORT=8080
 # Expose the port
 EXPOSE ${PORT}
 
+# Healthcheck for container
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:${PORT}/health || exit 1
+
 # Start Gunicorn
-CMD ["gunicorn", "--workers=3", "--worker-class=sync", "--worker-tmp-dir=/dev/shm", "--bind=0.0.0.0:${PORT}", "--log-level=info", "--access-logfile=-", "--error-logfile=-", "wsgi:app"]
+CMD ["gunicorn", "--workers=3", "--worker-class=sync", "--worker-tmp-dir=/dev/shm", "--bind=0.0.0.0:${PORT}", "--log-level=info", "--access-logfile=-", "--error-logfile=-", "--timeout=60", "wsgi:app"]
 
 

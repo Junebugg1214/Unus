@@ -19,3 +19,4 @@
     "not ie <= 11" // Explicitly define browsers that should be targeted.
   ]
 }
+
